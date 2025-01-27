@@ -7,7 +7,7 @@
 
 
 template<class T>
-void priority_queue<T>::heapify( int i )
+void priority_queue_custom<T>::heapify( int i )
 
 {
   int min = i;
@@ -36,7 +36,7 @@ void priority_queue<T>::heapify( int i )
 
 
 template<class T>
-void priority_queue<T>::add( T data, float priority )
+void priority_queue_custom<T>::add( T data, float priority )
 
 {
   int i, parent;
@@ -70,7 +70,7 @@ void priority_queue<T>::add( T data, float priority )
 
 
 template<class T>
-void priority_queue<T>::append( T data, float priority )
+void priority_queue_custom<T>::append( T data, float priority )
 
 {
   int i;
@@ -96,7 +96,7 @@ void priority_queue<T>::append( T data, float priority )
 
 main()
 
-{ priority_queue<int> pq;
+{ priority_queue_custom<int> pq;
 
   pq.add( 1, 9 );
   pq.add( 5, 5 );

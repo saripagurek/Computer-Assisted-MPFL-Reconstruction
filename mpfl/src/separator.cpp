@@ -1209,7 +1209,7 @@ void Separator::drawSelectedPoint( mat4 &MV, mat4 &MVP, vec3 &lightDir, int maxN
 void Separator::findClosestPoints( seq<int> &results, int ptIndex, float maxDist, int maxNumPts )
 
 {
-  priority_queue<int> pq;
+  priority_queue_custom<int> pq;
 
   pq.makeEmpty();  // max-queue
   

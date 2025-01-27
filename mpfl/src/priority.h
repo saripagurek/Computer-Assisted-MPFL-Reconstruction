@@ -3,7 +3,7 @@
  * new PQnode()                  create a priority queue node
  * new PQnode( data, priority )  create a node with data and priority
  *
- * new priority_queue()       create a priority queue
+ * new priority_queue_custom()       create a priority queue
  * pq.add( data, priority )   add data with priority to queue
  * pq.remove_max()            remove & return maximum-priority data
  * pq.max()                   return maximum-priority data
@@ -15,19 +15,19 @@
 #define PRIORITYH
 
 
-template<class T> class priority_queue;
+template<class T> class priority_queue_custom;
 
 
 template<class T>
 class PQnode {
-  friend class priority_queue<T>;
+  friend class priority_queue_custom<T>;
   T data;
   float priority;
 };
 
 
 template<class T>
-class priority_queue {
+class priority_queue_custom {
 
   PQnode<T> *A;
 
@@ -38,10 +38,10 @@ class priority_queue {
   int n;
   int size;
 
-  priority_queue()
+  priority_queue_custom()
     { size = 100; n = 0; A = new PQnode<T>[size]; }
   
-  ~priority_queue()
+  ~priority_queue_custom()
     { delete [] A; }
 
   int empty()
