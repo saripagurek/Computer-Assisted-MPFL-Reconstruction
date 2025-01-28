@@ -1,4 +1,4 @@
-#include "Spring.h"
+#include "spring.h"
 
 // Constructor
 Spring::Spring(double k, double damping, double f_X, double f_Y, double f_Z, double p_X, double p_Y, double p_Z)
