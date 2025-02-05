@@ -19,6 +19,7 @@
 #include "priority.h"
 #include "graph.h"
 #include "shortest.h"
+#include "spring.h"
 
 #include <sstream>
 #include <iomanip>
@@ -37,6 +38,7 @@ Anim       *anim;
 Colourmap  *colourmap;
 StrokeFont *strokeFont;
 Graph      *graph;
+Spring    *spring;
 
 seq<Separator*> allSeparators;
 Separator*      separator; // points to one from 'allSeparators' as the current separator
@@ -113,6 +115,7 @@ bool showCapturedPoints = true;
 bool buildGrid = false;
 bool startGridFormation = false;
 bool measureIsometry = false;
+bool showSprings = true;
 
 seq<vec3> gridPoints;
 seq<float> gridPointQuality; // first index is same as gridPoints index
@@ -238,7 +241,7 @@ void display()
   // Objects
   
   renderer->render( objs, separator->endpoints, separator->skeletonPoints, 
-		    showSkeleton, showObjects, showCastShadows, showDistance, 
+		    showSkeleton, showObjects, showCastShadows, showDistance, showSprings,
 		    minDistRenderingRange, maxDistRenderingRange,
 		    WCS_to_VCS, WCS_to_CCS, lightDir, window, false );
 
@@ -1362,6 +1365,14 @@ int main( int argc, char **argv )
   }
 
   // Set up renderer
+
+  // Example parameters for the Spring constructor
+  double springConstant = 10.0;
+  double dampingCoefficient = 0.5;
+  double femur_X = 0.0, femur_Y = 0.0, femur_Z = 0.0;
+  double patella_X = 1.0, patella_Y = 1.0, patella_Z = 1.0;
+
+  spring = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z);
 
   axes      = new Axes();
   sphere    = new Sphere();

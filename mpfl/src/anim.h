@@ -62,6 +62,8 @@ class Anim {
   void setPatellaObj();
   void deleteCurrentStep();
   void computeShortestPathsForGrid();
+
+  double calculateDistance(const mat4 &transform1, const mat4 &transform2);
   
   bool step( int i );
   

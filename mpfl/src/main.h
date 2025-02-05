@@ -18,6 +18,7 @@
 #include "stl.h"
 #include "strokefont.h"
 #include "shortest.h"
+#include "spring.h"
 
 extern GLuint windowWidth, windowHeight;
 extern GLFWwindow *window;
@@ -62,6 +63,7 @@ extern Tube      *tube;
 extern Segs      *segs;
 extern Anim      *anim;
 extern Colourmap *colourmap;
+extern Spring    *spring;
 
 extern Separator *separator;
 extern seq<Separator*> allSeparators;

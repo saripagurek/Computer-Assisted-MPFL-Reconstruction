@@ -1,4 +1,5 @@
 #include "spring.h"
+#include "main.h"
 
 // Constructor
 Spring::Spring(double k, double damping, double f_X, double f_Y, double f_Z, double p_X, double p_Y, double p_Z)
@@ -52,7 +53,7 @@ double Spring::getRestLength() const {
 }
 
 // Method to calculate the force exerted by the spring
-void Spring::update(double deltaTime) {
+void Spring::update(double deltaTime, double distance) {
     double restLength = calculateRestLength();
     double currentLength = std::sqrt(
         std::pow(patella_X - femur_X, 2) +
@@ -73,6 +74,11 @@ void Spring::update(double deltaTime) {
     double totalForce_Y = springForce * (patella_Y - femur_Y) / currentLength + dampingForce_Y;
     double totalForce_Z = springForce * (patella_Z - femur_Z) / currentLength + dampingForce_Z;
 
+    // Calculate velocity based on distance and deltaTime
+    velocity_X = distance / deltaTime;
+    velocity_Y = distance / deltaTime;
+    velocity_Z = distance / deltaTime;
+
     // Update velocity
     velocity_X += (totalForce_X * deltaTime);
     velocity_Y += (totalForce_Y * deltaTime);
@@ -82,4 +88,43 @@ void Spring::update(double deltaTime) {
     patella_X += velocity_X * deltaTime;
     patella_Y += velocity_Y * deltaTime;
     patella_Z += velocity_Z * deltaTime;
+}
+
+
+// Helper method to draw the spring as a cylinder
+void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, const vec4 &colour) {
+
+    std::cout << "Drawing spring with colour: " << colour << std::endl;
+
+    vec3 p0(femur_X, femur_Y, femur_Z);
+    vec3 p1(patella_X, patella_Y, patella_Z);
+
+    vec3 x0 = (p1 - p0).perp1().normalize();
+    vec3 x1 = x0;
+
+    if (x0 * x1 < 0) // (otherwise directions around circle might be different at two ends)
+        x0 = -1 * x0;
+
+    // other perpendiculars to x and axis
+    vec3 y0 = (x0 ^ (p1 - p0)).normalize();
+    vec3 y1 = (x1 ^ (p1 - p0)).normalize();
+
+    // Build a cylinder
+    const int NUM_CYL_FACES = 50;
+    const float CYL_RADIUS = 0.5;
+
+    vec3 ps[2 * (NUM_CYL_FACES + 1)];
+    vec3 ns[2 * (NUM_CYL_FACES + 1)];
+
+    for (int i = 0; i < NUM_CYL_FACES + 1; i++) {
+        float theta = i * (2 * M_PI / (float)NUM_CYL_FACES);
+
+        ns[2 * i] = cos(theta) * x0 + sin(theta) * y0;
+        ns[2 * i + 1] = cos(theta) * x1 + sin(theta) * y1;
+
+        ps[2 * i] = p0 + CYL_RADIUS * ns[2 * i];
+        ps[2 * i + 1] = p1 + CYL_RADIUS * ns[2 * i + 1];
+    }
+
+    segs->drawSegs(GL_TRIANGLE_STRIP, &ps[0], colour, &ns[0], 2 * (NUM_CYL_FACES + 1), WCS_to_VCS, WCS_to_CCS, lightDirVCS);
 }

@@ -9,6 +9,7 @@
 #include <armadillo>  // for SVD
 #include <thread>
 #include <mutex>
+#include <cmath>
 
 
 // Find a rotation + translation that moves the separator points in
@@ -375,6 +376,23 @@ bool Anim::step( int delta )
       shortestPaths[i] = NULL;
 
   return move;
+}
+
+
+// Helper function to calculate the Euclidean distance between two transformation matrices
+double Anim::calculateDistance(const mat4 &transform1, const mat4 &transform2) {
+    // Extract translation components (positions) from the transformation matrices
+    vec3 pos1(transform1[0][3], transform1[1][3], transform1[2][3]);
+    vec3 pos2(transform2[0][3], transform2[1][3], transform2[2][3]);
+
+    // Calculate the Euclidean distance between the two positions
+    double distance = std::sqrt(
+        std::pow(pos2.x - pos1.x, 2) +
+        std::pow(pos2.y - pos1.y, 2) +
+        std::pow(pos2.z - pos1.z, 2)
+    );
+
+    return distance;
 }
 
 

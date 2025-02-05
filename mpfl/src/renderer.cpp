@@ -4,6 +4,7 @@
 #include "headers.h"
 #include "renderer.h"
 #include "main.h"
+#include "spring.h"
 
 
 #define EPICONDYLE_COLOUR vec4( 0.2, 0.8, 0.3, 1.0 )
@@ -13,7 +14,7 @@
 
 
 void Renderer::render( seq<STL*> &objs, seq <vec3> &endpoints, seq <vec3> &skeletonPoints, 
-		       bool showSkeleton, bool showObjects, bool showCastShadows, bool showDistance, 
+		       bool showSkeleton, bool showObjects, bool showCastShadows, bool showDistance, bool showSprings,
 		       float minDistRenderingRange, float maxDistRenderingRange,
 		       mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, 
 		       vec3 &lightDir, GLFWwindow *window, bool renderOrthographic )
@@ -289,6 +290,11 @@ void Renderer::render( seq<STL*> &objs, seq <vec3> &endpoints, seq <vec3> &skele
 	if (shortestPaths[i] != NULL)
 	  shortestPaths[i]->draw( capturedPointColours[i], WCS_to_VCS, WCS_to_CCS, lightDirVCS );
   }
+
+  // Render the springs
+    if (showSprings) {
+        spring->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDirVCS, vec4(0.8, 0.2, 0.2, 1.0));
+    }
 
   // Done
 

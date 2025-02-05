@@ -2,6 +2,9 @@
 #define SPRING_H
 
 #include <cmath>
+#include "linalg.h"
+
+class Segs; // Forward declaration of Segs class
 
 class Spring {
 private:
@@ -30,7 +33,10 @@ public:
     double getRestLength() const;
 
     // Method to update the spring's state based on time interval
-    void update(double deltaTime);
+    void update(double deltaTime, double distance);
+
+    // Method to draw the spring as a cylinder
+    void drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, const vec4 &colour);
 };
 
 #endif // SPRING_H

@@ -55,7 +55,7 @@ class Renderer {
   }
 
   void render( seq<STL*> &objs, seq <vec3> &endpoints, seq <vec3> &skeletonPoints, 
-	       bool showSkeleton, bool showObjects, bool showCastShadows, bool showDistance,
+	       bool showSkeleton, bool showObjects, bool showCastShadows, bool showDistance, bool showSprings,
 	       float minDistance, float maxDistance,
 	       mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, 
 	       vec3 &lightDir, GLFWwindow *window, bool renderOrthographic );
