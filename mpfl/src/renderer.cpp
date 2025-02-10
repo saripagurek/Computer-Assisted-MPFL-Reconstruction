@@ -64,6 +64,11 @@ void Renderer::render( seq<STL*> &objs, seq <vec3> &endpoints, seq <vec3> &skele
     pass1Prog->setMat4( "OCS_to_lightCCS", OCS_to_lightCCS );
   }
 
+  // Render the springs
+    if (showSprings) {
+        spring->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDir, vec4(0.8, 0.2, 0.2, 1.0));
+    }
+
   // Draw any segments
 
   // if (endpoints.size() > 0)  {

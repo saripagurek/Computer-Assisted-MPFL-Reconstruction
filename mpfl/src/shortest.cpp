@@ -414,6 +414,28 @@ void ShortestPath::draw( vec4 &colour, mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 
       ps[2*i+1] = p1 + CYL_RADIUS * ns[2*i+1];
     }
 
+    // Print the camera perspective matrices
+    /*std::cout << "SHORTEST WCS_to_VCS matrix: " << std::endl;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            std::cout << WCS_to_VCS[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "SHORTEST WCS_to_CCS matrix: " << std::endl;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            std::cout << WCS_to_CCS[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }*/
+
+    // Debug print statements for end points
+        /*std::cout << "Segment " << j << " end points:" << std::endl;
+        std::cout << "  p0: " << p0 << std::endl;
+        std::cout << "  p1: " << p1 << std::endl;*/
+
     segs->drawSegs( GL_TRIANGLE_STRIP, &ps[0], colour, &ns[0], 2*(NUM_CYL_FACES+1), WCS_to_VCS, WCS_to_CCS, lightDirVCS );
   }
 }

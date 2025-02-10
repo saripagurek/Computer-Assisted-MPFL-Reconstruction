@@ -34,6 +34,7 @@ Axes       *axes;
 Sphere     *sphere;
 Tube       *tube;
 Segs       *segs;
+Segs       *springSegs;
 Anim       *anim;
 Colourmap  *colourmap;
 StrokeFont *strokeFont;
@@ -1369,8 +1370,8 @@ int main( int argc, char **argv )
   // Example parameters for the Spring constructor
   double springConstant = 10.0;
   double dampingCoefficient = 0.5;
-  double femur_X = 0.0, femur_Y = 0.0, femur_Z = 0.0;
-  double patella_X = 1.0, patella_Y = 1.0, patella_Z = 1.0;
+  double femur_X = -237.335, femur_Y =  -47.9579, femur_Z =  60.9971;
+  double patella_X = -337.335, patella_Y = -147.9579, patella_Z =  160.9971;
 
   spring = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z);
 
@@ -1378,6 +1379,7 @@ int main( int argc, char **argv )
   sphere    = new Sphere();
   tube      = new Tube();
   segs      = new Segs();
+  springSegs = new Segs();
   colourmap = new Colourmap();
   renderer  = new Renderer( windowWidth, windowHeight, SHADER_DIR, window );
 

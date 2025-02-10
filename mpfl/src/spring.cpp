@@ -1,5 +1,6 @@
 #include "spring.h"
 #include "main.h"
+#include <iostream>
 
 // Constructor
 Spring::Spring(double k, double damping, double f_X, double f_Y, double f_Z, double p_X, double p_Y, double p_Z)
@@ -91,13 +92,27 @@ void Spring::update(double deltaTime, double distance) {
 }
 
 
+void checkGLError(const std::string &msg) {
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        std::cerr << "OpenGL error after " << msg << ": " << err << std::endl;
+    }
+}
+
+// Function to calculate the area of a triangle given its vertices
+float triangleArea(const vec3 &a, const vec3 &b, const vec3 &c) {
+    return 0.5f * ((b - a) ^ (c - a)).length();
+}
+
 // Helper method to draw the spring as a cylinder
 void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, const vec4 &colour) {
 
-    std::cout << "Drawing spring with colour: " << colour << std::endl;
+    //std::cout << "Drawing spring with colour: " << colour << std::endl;
 
     vec3 p0(femur_X, femur_Y, femur_Z);
     vec3 p1(patella_X, patella_Y, patella_Z);
+
+    //std::cout << "p0: " << p0 << ", p1: " << p1 << std::endl;
 
     vec3 x0 = (p1 - p0).perp1().normalize();
     vec3 x1 = x0;
@@ -124,7 +139,48 @@ void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, c
 
         ps[2 * i] = p0 + CYL_RADIUS * ns[2 * i];
         ps[2 * i + 1] = p1 + CYL_RADIUS * ns[2 * i + 1];
+
+        // Print the points of each drawn segment
+       /*std::cout << "Segment " << i << ": " << std::endl;
+        std::cout << "  ps[" << 2 * i << "] = " << ps[2 * i] << std::endl;
+        std::cout << "  ps[" << 2 * i + 1 << "] = " << ps[2 * i + 1] << std::endl;*/
+
+        // Calculate and print the area of the triangles
+        /*if (i > 0) {
+            float area1 = triangleArea(ps[2 * (i - 1)], ps[2 * (i - 1) + 1], ps[2 * i]);
+            float area2 = triangleArea(ps[2 * (i - 1) + 1], ps[2 * i], ps[2 * i + 1]);
+            std::cout << "  Triangle 1 area: " << area1 << std::endl;
+            std::cout << "  Triangle 2 area: " << area2 << std::endl;
+        }*/
     }
 
-    segs->drawSegs(GL_TRIANGLE_STRIP, &ps[0], colour, &ns[0], 2 * (NUM_CYL_FACES + 1), WCS_to_VCS, WCS_to_CCS, lightDirVCS);
+    //std::cout << "ps and ns arrays populated" << std::endl;
+
+    //mat4 translationMatrix = translate(1.0f, 1.0f, 1.0f);
+    //WCS_to_CCS = translationMatrix * WCS_to_CCS;
+
+    // Print the camera perspective matrices
+    /*std::cout << "SPRING WCS_to_VCS matrix: " << std::endl;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            std::cout << WCS_to_VCS[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "SPRING WCS_to_CCS matrix: " << std::endl;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            std::cout << WCS_to_CCS[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }*/
+
+    glDisable( GL_DEPTH_TEST );
+
+    springSegs->drawSegs(GL_TRIANGLE_STRIP, &ps[0], colour, &ns[0], 2 * (NUM_CYL_FACES + 1), WCS_to_VCS, WCS_to_CCS, lightDirVCS);
+
+    glEnable( GL_DEPTH_TEST );
+
+    checkGLError("drawSpring");
 }

@@ -61,6 +61,7 @@ extern ShortestPath **shortestPaths;
 extern Sphere    *sphere;
 extern Tube      *tube;
 extern Segs      *segs;
+extern Segs      *springSegs;
 extern Anim      *anim;
 extern Colourmap *colourmap;
 extern Spring    *spring;
