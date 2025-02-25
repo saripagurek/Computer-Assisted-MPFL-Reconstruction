@@ -53,6 +53,21 @@ double Spring::getRestLength() const {
     return calculateRestLength();
 }
 
+// Method to reposition the spring's anchor points
+void Spring::reposition(const vec3 &newPatellaXYZ, const vec3 &newFemurXYZ) {
+    if (newPatellaXYZ != vec3(0, 0, 0)) {
+        patella_X = newPatellaXYZ.x;
+        patella_Y = newPatellaXYZ.y;
+        patella_Z = newPatellaXYZ.z;
+    }
+
+    if (newFemurXYZ != vec3(0, 0, 0)) {
+        femur_X = newFemurXYZ.x;
+        femur_Y = newFemurXYZ.y;
+        femur_Z = newFemurXYZ.z;
+    }
+}
+
 // Method to calculate the force exerted by the spring
 void Spring::update(double deltaTime, double distance) {
     double restLength = calculateRestLength();
@@ -86,9 +101,9 @@ void Spring::update(double deltaTime, double distance) {
     velocity_Z += (totalForce_Z * deltaTime);
 
     // Update position
-    patella_X += velocity_X * deltaTime;
-    patella_Y += velocity_Y * deltaTime;
-    patella_Z += velocity_Z * deltaTime;
+    //patella_X += velocity_X * deltaTime;
+    //patella_Y += velocity_Y * deltaTime;
+    //patella_Z += velocity_Z * deltaTime;
 }
 
 
@@ -106,6 +121,12 @@ float triangleArea(const vec3 &a, const vec3 &b, const vec3 &c) {
 
 // Helper method to draw the spring as a cylinder
 void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, const vec4 &colour) {
+
+    // Print the current velocities of the spring
+    /*std::cout << "Spring velocities: " << std::endl;
+    std::cout << "  velocity_X: " << velocity_X << std::endl;
+    std::cout << "  velocity_Y: " << velocity_Y << std::endl;
+    std::cout << "  velocity_Z: " << velocity_Z << std::endl;*/
 
     //std::cout << "Drawing spring with colour: " << colour << std::endl;
 
@@ -176,11 +197,11 @@ void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, c
         std::cout << std::endl;
     }*/
 
-    glDisable( GL_DEPTH_TEST );
+    //glDisable( GL_DEPTH_TEST );
 
     springSegs->drawSegs(GL_TRIANGLE_STRIP, &ps[0], colour, &ns[0], 2 * (NUM_CYL_FACES + 1), WCS_to_VCS, WCS_to_CCS, lightDirVCS);
 
-    glEnable( GL_DEPTH_TEST );
+    //glEnable( GL_DEPTH_TEST );
 
     checkGLError("drawSpring");
 }

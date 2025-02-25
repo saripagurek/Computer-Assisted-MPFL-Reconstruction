@@ -32,6 +32,9 @@ public:
     double getDampingCoefficient() const;
     double getRestLength() const;
 
+    // Method to reposition the spring's anchor points
+    void reposition(const vec3 &newPatellaXYZ, const vec3 &newFemurXYZ);
+
     // Method to update the spring's state based on time interval
     void update(double deltaTime, double distance);
 

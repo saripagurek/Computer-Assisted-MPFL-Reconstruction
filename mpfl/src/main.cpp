@@ -23,6 +23,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <sys/time.h>
 
 char *objFile1;
 char *objFile2;
@@ -51,6 +52,11 @@ vec3 rightEpicondyle(0,0,0);
 bool capturingLeftEpicondyle = false;
 bool capturingRightEpicondyle = false;
 bool showEpicondyles = false;
+
+vec3 quadEndPoint1(0, 0, 0);
+vec3 quadEndPoint2(0, 0, 0);
+bool capturingQuadEndPoint1 = false;
+bool capturingQuadEndPoint2 = false;
 
 bool  capturingPoint = false;
 int   capturedPointIndex;
@@ -511,6 +517,20 @@ void keyCallback( GLFWwindow* window, int key, int scancode, int action, int mod
 
       break;
 
+    case GLFW_KEY_LEFT:
+        fovy *= 0.9; // Zoom in
+        if (fovy < 0.001)
+            fovy = 0.001;
+        anim->saveView();
+        break;
+
+    case GLFW_KEY_RIGHT:
+        fovy *= 1.1; // Zoom out
+        if (fovy > 135)
+            fovy = 135;
+        anim->saveView();
+        break;
+
     case 'P':
       showPatella = !showPatella;
       break;
@@ -626,6 +646,16 @@ void keyCallback( GLFWwindow* window, int key, int scancode, int action, int mod
     case 'R':
       capturingRightEpicondyle = true;
       showEpicondyles = true;
+      break;
+
+    case 'Q':
+      capturingQuadEndPoint1 = true;
+      cout << "capturingQuadEndPoint1" << endl;
+      break;
+
+    case 'W':    
+      capturingQuadEndPoint2 = true;
+      cout << "capturingQuadEndPoint2" << endl;
       break;
 
     case GLFW_KEY_DOWN:
@@ -1084,103 +1114,111 @@ void buildGridFromPoints()
 
 
 
-void findPointUnderMouse( vec2 mousePos, bool ctrlKey, bool shiftKey )
+void findPointUnderMouse(vec2 mousePos, bool ctrlKey, bool shiftKey) {
+    // WCS-to-VCS
+    mat4 WCS_to_VCS = lookat(eyePosition, lookAt, upDir);
 
-{
-  // WCS-to-VCS
+    // WCS-to-CCS
+    float n = (eyePosition - lookAt).length() - worldRadius;
+    float f = (eyePosition - lookAt).length() + worldRadius;
+    mat4 WCS_to_CCS = perspective(fovy, windowWidth / (float)windowHeight, n, f) * WCS_to_VCS;
 
-  mat4 WCS_to_VCS = lookat( eyePosition, lookAt, upDir );
+    // Mouse in CCS
+    vec4 mouseCCS(2 * mousePos.x / (float)windowWidth - 1,
+                  2 * (1 - mousePos.y / (float)windowHeight) - 1,
+                  0, 1);
 
-  // WCS-to-CCS
+    // Mouse in WCS
+    vec3 mouseWCS = (WCS_to_CCS.inverse() * mouseCCS).toVec3();
 
-  float n = (eyePosition - lookAt).length() - worldRadius;
-  float f = (eyePosition - lookAt).length() + worldRadius;
+    // Find point on model
+    if (capturingLeftEpicondyle || capturingRightEpicondyle || capturingPoint || buildGrid || shiftKey || capturingQuadEndPoint1 || capturingQuadEndPoint2) {
+        vec3 minIntPoint;
+        float minIntParam = MAXFLOAT;
+        int minObject = -1;
 
-  mat4 WCS_to_CCS = perspective( fovy, windowWidth / (float) windowHeight, n, f ) * WCS_to_VCS;
+        for (int i = 0; i < objs.size(); i++) {
+            vec3 intPoint, intNorm;
+            float intParam;
 
-  // mouse in CCS
-  
-  vec4 mouseCCS( 2 * mousePos.x / (float) windowWidth - 1,
-		 2 * (1 - mousePos.y / (float) windowHeight) - 1,
-		 0, 1 );
+            if (objs[i]->findFirstInt(eyePosition, mouseWCS - eyePosition, intPoint, intNorm, intParam) && intParam < minIntParam) {
+                minIntPoint = intPoint;
+                minIntParam = intParam;
+                minObject = i;
+            }
+        }
 
-  // mouse in WCS
-  
-  vec3 mouseWCS = (WCS_to_CCS.inverse() * mouseCCS).toVec3();
+        // If no intersection is found and capturing quad end points, use the mouseWCS position
+        if (minIntParam == MAXFLOAT && (capturingQuadEndPoint1 || capturingQuadEndPoint2)) {
+            std::cout << "No intersection found, using mouseWCS position" << std::endl;
+            minIntPoint = mouseWCS;
+        }
 
-  // Find point on model
+        if (minIntParam != MAXFLOAT || (capturingQuadEndPoint1 || capturingQuadEndPoint2)) {
+            if (capturingLeftEpicondyle) {
+                leftEpicondyle = minIntPoint;
+                capturingLeftEpicondyle = false;
+                anim->saveState();
+            } else if (capturingRightEpicondyle) {
+                rightEpicondyle = minIntPoint;
+                capturingRightEpicondyle = false;
+                anim->saveState();
+            } else if (capturingQuadEndPoint1) {
+                std::cout << "capturingQuadEndPoint1 true" << std::endl;
+                quadEndPoint1 = minIntPoint;
+                std::cout << "Captured quadEndPoint1: " << quadEndPoint1 << std::endl;
+                capturingQuadEndPoint1 = false;
+                anim->saveState();
 
-  if (capturingLeftEpicondyle || capturingRightEpicondyle || capturingPoint || buildGrid || shiftKey) {
+                // Update the spring with the new quad end point 1
+                spring->reposition(quadEndPoint1, vec3(0, 0, 0));
+            } else if (capturingQuadEndPoint2) {
+                quadEndPoint2 = minIntPoint;
+                std::cout << "Captured quadEndPoint2: " << quadEndPoint2 << std::endl;
+                capturingQuadEndPoint2 = false;
+                anim->saveState();
 
-    vec3  minIntPoint;
-    float minIntParam = MAXFLOAT;
-    int   minObject;
+                // Update the spring with the new quad end point 2
+                spring->reposition(vec3(0, 0, 0), quadEndPoint2);
+            } else if (capturingPoint) {
+                // Store captured points in the coord system of their own object
+                capturedPoints[capturedPointIndex] = (objs[minObject]->objToWorldTransform.inverse() * vec4(minIntPoint, 1)).toVec3();
+                capturedObjects[capturedPointIndex] = minObject;
+                capturingPoint = false;
+                anim->saveState();
+            } else if (buildGrid) {
+                if (gridPoints.size() == 1)
+                    gridObject = minObject;
+                if (gridObject == minObject) {
+                    gridPoints.add((objs[minObject]->objToWorldTransform.inverse() * vec4(minIntPoint, 1)).toVec3());
+                    gridPointQuality.add(-1);
+                    if (gridPoints.size() > 2) {
+                        buildGrid = false;
+                        startGridFormation = true;
+                    }
+                }
+            } else if (shiftKey) {
+                // Find closest grid point
+                float minDist = MAXFLOAT;
+                int minGridPt;
+                for (int i = 0; i < gridPoints.size(); i++) {
+                    vec3 wcsGridPt = (objs[0]->objToWorldTransform * vec4(gridPoints[i], 1)).toVec3();
+                    float dist = (wcsGridPt - minIntPoint).length();
+                    if (dist < minDist) {
+                        minDist = dist;
+                        minGridPt = i;
+                    }
+                }
 
-    for (int i=0; i<objs.size(); i++) {
-      vec3 intPoint, intNorm;
-      float intParam;
-
-      if (   objs[i]->findFirstInt( eyePosition, mouseWCS - eyePosition, intPoint, intNorm, intParam )
-	  && intParam < minIntParam) {
-
-	minIntPoint = intPoint;
-	minIntParam = intParam;
-	minObject = i;
-      }
+                if (minDist < 5)
+                    highlightGridPoint = minGridPt;
+                else
+                    highlightGridPoint = -1;
+            }
+        }
+    } else if (separator != NULL) {
+        separator->selectPoint(eyePosition, mouseWCS - eyePosition, maxNumClosestPts, maxClosestPtsDist);
     }
-
-    if (minIntParam != MAXFLOAT) {
-      
-      if (capturingLeftEpicondyle) {
-	leftEpicondyle = minIntPoint;
-	capturingLeftEpicondyle = false;
-	anim->saveState();
-      } else if (capturingRightEpicondyle) {
-	rightEpicondyle = minIntPoint;
-	capturingRightEpicondyle = false;
-	anim->saveState();
-      } else if (capturingPoint) {
-	// Store captured points in the coord system of their own object
-	capturedPoints[ capturedPointIndex ] = (objs[minObject]->objToWorldTransform.inverse() * vec4(minIntPoint,1)).toVec3();
-	capturedObjects[ capturedPointIndex ] = minObject;
-	capturingPoint = false;
-	anim->saveState();
-      } else if (buildGrid) {
-	if (gridPoints.size() == 1)
-	  gridObject = minObject;
-	if (gridObject == minObject) {
-	  gridPoints.add( (objs[minObject]->objToWorldTransform.inverse() * vec4(minIntPoint,1)).toVec3() );
-	  gridPointQuality.add( -1 );
-	  if (gridPoints.size() > 2) {
-	    buildGrid = false;
-	    startGridFormation = true;
-	  }
-	}
-      } else if (shiftKey) {
-
-	// Find closest grid point
-
-	float minDist = MAXFLOAT;
-	float minGridPt;
-	for (int i=0; i<gridPoints.size(); i++) {
-	  vec3 wcsGridPt = (objs[0]->objToWorldTransform * vec4( gridPoints[i] ,1)).toVec3();
-	  float dist = (wcsGridPt - minIntPoint).length();
-	  if (dist < minDist) {
-	    minDist = dist;
-	    minGridPt = i;
-	  }
-	}
-
-	if (minDist < 5)
-	  highlightGridPoint = minGridPt;
-	else
-	  highlightGridPoint = -1;
-      }
-    }
-
-  } else if (separator != NULL)
-
-    separator->selectPoint( eyePosition, mouseWCS - eyePosition, maxNumClosestPts, maxClosestPtsDist );
 }
 
 
@@ -1214,6 +1252,7 @@ void mouseButtonCallback( GLFWwindow* window, int button, int action, int mods )
     if (x == mouse.x && y == mouse.y) {
 
       if (mods & GLFW_MOD_CONTROL || mods & GLFW_MOD_SHIFT) { // CTRL-click: find closest point
+      cout << "CTRL-click" << endl;
 	findPointUnderMouse( mouse, mods & GLFW_MOD_CONTROL, mods & GLFW_MOD_SHIFT );
 	//lookAt = skeletonPoints[ separator->selectedAdjPt ];
       }
@@ -1394,6 +1433,9 @@ int main( int argc, char **argv )
   struct timeval prevTime, thisTime; // record the last rendering time
   gettimeofday( &prevTime, NULL );
 
+  struct timeval springPrevTime, springThisTime; // record the last time for spring velocity calculation
+  gettimeofday(&springPrevTime, NULL);
+
   glEnable( GL_DEPTH_TEST );
 
   // if (objs.size() > 1)
@@ -1410,6 +1452,15 @@ int main( int argc, char **argv )
     // Update the world state
 
     updateState( elapsedSeconds );
+
+    // Find elapsed time for spring velocity calculation
+    gettimeofday(&springThisTime, NULL);
+    float springElapsedSeconds = (springThisTime.tv_sec + springThisTime.tv_usec / 1000000.0) - (springPrevTime.tv_sec + springPrevTime.tv_usec / 1000000.0);
+    springPrevTime = springThisTime;
+
+    // Update the spring
+    double distance = 1.0; // Example distance, replace with actual distance calculation
+    spring->update(springElapsedSeconds, distance);
 
     // Clear, display, and check for events
 

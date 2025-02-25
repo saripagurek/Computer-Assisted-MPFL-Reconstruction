@@ -8,6 +8,7 @@
 
 
 #define EPICONDYLE_COLOUR vec4( 0.2, 0.8, 0.3, 1.0 )
+#define QUAD_COLOUR vec4(0.8, 0.2, 0.2, 1.0)
 
 
 // Render the scene in two passes for shadowing
@@ -298,7 +299,20 @@ void Renderer::render( seq<STL*> &objs, seq <vec3> &endpoints, seq <vec3> &skele
 
   // Render the springs
     if (showSprings) {
-        spring->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDirVCS, vec4(0.8, 0.2, 0.2, 1.0));
+        spring->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDirVCS, QUAD_COLOUR);
+
+        // Show quad end points
+      if (quadEndPoint1 != vec3(0, 0, 0)) {
+          mat4 sphere_MV = WCS_to_VCS * translate(quadEndPoint1) * sphereScale;
+          mat4 sphere_MVP = WCS_to_CCS * translate(quadEndPoint1) * sphereScale;
+          sphere->renderGL(sphere_MV, sphere_MVP, lightDir, QUAD_COLOUR);
+      }
+
+      if (quadEndPoint2 != vec3(0, 0, 0)) {
+          mat4 sphere_MV = WCS_to_VCS * translate(quadEndPoint2) * sphereScale;
+          mat4 sphere_MVP = WCS_to_CCS * translate(quadEndPoint2) * sphereScale;
+          sphere->renderGL(sphere_MV, sphere_MVP, lightDir, QUAD_COLOUR);
+      }
     }
 
   // Done
