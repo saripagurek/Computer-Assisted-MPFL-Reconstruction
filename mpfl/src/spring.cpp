@@ -3,9 +3,9 @@
 #include <iostream>
 
 // Constructor
-Spring::Spring(double k, double damping, double f_X, double f_Y, double f_Z, double p_X, double p_Y, double p_Z)
+Spring::Spring(double k, double damping, double f_X, double f_Y, double f_Z, double p_X, double p_Y, double p_Z, double weight)
     : springConstant(k), dampingCoefficient(damping), femur_X(f_X), femur_Y(f_Y), femur_Z(f_Z),
-      patella_X(p_X), patella_Y(p_Y), patella_Z(p_Z), velocity_X(0.0), velocity_Y(0.0), velocity_Z(0.0) {}
+      patella_X(p_X), patella_Y(p_Y), patella_Z(p_Z), velocity_X(0.0), velocity_Y(0.0), velocity_Z(0.0), weight(weight) {}
 
 // Private helper function
 double Spring::calculateRestLength() const {
@@ -40,6 +40,10 @@ void Spring::setVelocity(double v_X, double v_Y, double v_Z) {
     velocity_Z = v_Z;
 }
 
+void Spring::setWeight(double w) {
+    weight = w;
+}
+
 // Getters
 double Spring::getSpringConstant() const {
     return springConstant;
@@ -51,6 +55,10 @@ double Spring::getDampingCoefficient() const {
 
 double Spring::getRestLength() const {
     return calculateRestLength();
+}
+
+double Spring::getWeight() const {
+    return weight;
 }
 
 // Method to reposition the spring's anchor points

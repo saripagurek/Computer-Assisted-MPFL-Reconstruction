@@ -1412,7 +1412,7 @@ int main( int argc, char **argv )
   double femur_X = -237.335, femur_Y =  -47.9579, femur_Z =  60.9971;
   double patella_X = -337.335, patella_Y = -147.9579, patella_Z =  160.9971;
 
-  spring = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z);
+  spring = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z, 1.0);
 
   axes      = new Axes();
   sphere    = new Sphere();
