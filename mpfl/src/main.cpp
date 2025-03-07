@@ -40,7 +40,8 @@ Anim       *anim;
 Colourmap  *colourmap;
 StrokeFont *strokeFont;
 Graph      *graph;
-Spring    *spring;
+Spring    *springQuadTendon;
+Spring    *springPatellarTendon;
 
 seq<Separator*> allSeparators;
 Separator*      separator; // points to one from 'allSeparators' as the current separator
@@ -1149,12 +1150,12 @@ void findPointUnderMouse(vec2 mousePos, bool ctrlKey, bool shiftKey) {
         }
 
         // If no intersection is found and capturing quad end points, use the mouseWCS position
-        if (minIntParam == MAXFLOAT && (capturingQuadEndPoint1 || capturingQuadEndPoint2)) {
+        if (minIntParam == MAXFLOAT && (capturingQuadEndPoint1)) {
             std::cout << "No intersection found, using mouseWCS position" << std::endl;
             minIntPoint = mouseWCS;
         }
 
-        if (minIntParam != MAXFLOAT || (capturingQuadEndPoint1 || capturingQuadEndPoint2)) {
+        if (minIntParam != MAXFLOAT || (capturingQuadEndPoint1)) {
             if (capturingLeftEpicondyle) {
                 leftEpicondyle = minIntPoint;
                 capturingLeftEpicondyle = false;
@@ -1164,22 +1165,35 @@ void findPointUnderMouse(vec2 mousePos, bool ctrlKey, bool shiftKey) {
                 capturingRightEpicondyle = false;
                 anim->saveState();
             } else if (capturingQuadEndPoint1) {
-                std::cout << "capturingQuadEndPoint1 true" << std::endl;
                 quadEndPoint1 = minIntPoint;
-                std::cout << "Captured quadEndPoint1: " << quadEndPoint1 << std::endl;
                 capturingQuadEndPoint1 = false;
                 anim->saveState();
 
                 // Update the spring with the new quad end point 1
-                spring->reposition(quadEndPoint1, vec3(0, 0, 0));
+                springQuadTendon->reposition(quadEndPoint1, vec3(0, 0, 0));
             } else if (capturingQuadEndPoint2) {
-                quadEndPoint2 = minIntPoint;
-                std::cout << "Captured quadEndPoint2: " << quadEndPoint2 << std::endl;
-                capturingQuadEndPoint2 = false;
-                anim->saveState();
+              int patellaIndex = -1;
+              for (int i = 0; i < objs.size(); i++) {
+                  if (objs[i] == anim->patellaObj) {
+                      patellaIndex = i;
+                      break;
+                  }
+              }
+              if (minObject == patellaIndex) {
+                  // Transform the point to the local coordinate system of the patella object
+                  //quadEndPoint2 = minIntPoint;
+                  quadEndPoint2 = (anim->patellaObj->objToWorldTransform.inverse() * vec4(minIntPoint, 1)).toVec3();
+                  std::cout << "Closest obj is patella" << std::endl;
+                  std::cout << "Captured minIntPoint: " << minIntPoint << std::endl;
+                  std::cout << "Captured quadEndPoint2: " << quadEndPoint2 << std::endl;
+                  capturingQuadEndPoint2 = false;
+                  anim->saveState();
 
-                // Update the spring with the new quad end point 2
-                spring->reposition(vec3(0, 0, 0), quadEndPoint2);
+                  // Update the spring with the new quad end point 2
+                  springQuadTendon->reposition(vec3(0, 0, 0), quadEndPoint2);
+              } else {
+                  std::cout << "Quad end point 2 must be on the patella object" << std::endl;
+              }
             } else if (capturingPoint) {
                 // Store captured points in the coord system of their own object
                 capturedPoints[capturedPointIndex] = (objs[minObject]->objToWorldTransform.inverse() * vec4(minIntPoint, 1)).toVec3();
@@ -1412,7 +1426,8 @@ int main( int argc, char **argv )
   double femur_X = -237.335, femur_Y =  -47.9579, femur_Z =  60.9971;
   double patella_X = -337.335, patella_Y = -147.9579, patella_Z =  160.9971;
 
-  spring = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z, 1.0);
+  springQuadTendon = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z, 1.0);
+  springPatellarTendon = new Spring(springConstant, dampingCoefficient, -100.0, -50.0, 100, patella_X, patella_Y, patella_Z, 1.0);
 
   axes      = new Axes();
   sphere    = new Sphere();
@@ -1460,7 +1475,8 @@ int main( int argc, char **argv )
 
     // Update the spring
     double distance = 1.0; // Example distance, replace with actual distance calculation
-    spring->update(springElapsedSeconds, distance);
+    springQuadTendon->update(springElapsedSeconds, distance);
+    springPatellarTendon->update(springElapsedSeconds, distance);
 
     // Clear, display, and check for events
 

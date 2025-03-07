@@ -64,7 +64,8 @@ extern Segs      *segs;
 extern Segs      *springSegs;
 extern Anim      *anim;
 extern Colourmap *colourmap;
-extern Spring    *spring;
+extern Spring   *springQuadTendon;
+extern Spring   *springPatellarTendon;
 
 extern Separator *separator;
 extern seq<Separator*> allSeparators;

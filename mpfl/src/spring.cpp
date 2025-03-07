@@ -3,16 +3,16 @@
 #include <iostream>
 
 // Constructor
-Spring::Spring(double k, double damping, double f_X, double f_Y, double f_Z, double p_X, double p_Y, double p_Z, double weight)
-    : springConstant(k), dampingCoefficient(damping), femur_X(f_X), femur_Y(f_Y), femur_Z(f_Z),
+Spring::Spring(double k, double damping, double t_X, double t_Y, double t_Z, double p_X, double p_Y, double p_Z, double weight)
+    : springConstant(k), dampingCoefficient(damping), tendon_X(t_X), tendon_Y(t_Y), tendon_Z(t_Z),
       patella_X(p_X), patella_Y(p_Y), patella_Z(p_Z), velocity_X(0.0), velocity_Y(0.0), velocity_Z(0.0), weight(weight) {}
 
 // Private helper function
 double Spring::calculateRestLength() const {
     return std::sqrt(
-        std::pow(patella_X - femur_X, 2) +
-        std::pow(patella_Y - femur_Y, 2) +
-        std::pow(patella_Z - femur_Z, 2)
+        std::pow(patella_X - tendon_X, 2) +
+        std::pow(patella_Y - tendon_Y, 2) +
+        std::pow(patella_Z - tendon_Z, 2)
     );
 }
 
@@ -25,10 +25,10 @@ void Spring::setDampingCoefficient(double damping) {
     dampingCoefficient = damping;
 }
 
-void Spring::setAnchorPoints(double f_X, double f_Y, double f_Z, double p_X, double p_Y, double p_Z) {
-    femur_X = f_X;
-    femur_Y = f_Y;
-    femur_Z = f_Z;
+void Spring::setAnchorPoints(double t_X, double t_Y, double t_Z, double p_X, double p_Y, double p_Z) {
+    tendon_X = t_X;
+    tendon_Y = t_Y;
+    tendon_Z = t_Z;
     patella_X = p_X;
     patella_Y = p_Y;
     patella_Z = p_Z;
@@ -62,17 +62,17 @@ double Spring::getWeight() const {
 }
 
 // Method to reposition the spring's anchor points
-void Spring::reposition(const vec3 &newPatellaXYZ, const vec3 &newFemurXYZ) {
+void Spring::reposition(const vec3 &newtendonXYZ, const vec3 &newPatellaXYZ) {
     if (newPatellaXYZ != vec3(0, 0, 0)) {
         patella_X = newPatellaXYZ.x;
         patella_Y = newPatellaXYZ.y;
         patella_Z = newPatellaXYZ.z;
     }
 
-    if (newFemurXYZ != vec3(0, 0, 0)) {
-        femur_X = newFemurXYZ.x;
-        femur_Y = newFemurXYZ.y;
-        femur_Z = newFemurXYZ.z;
+    if (newtendonXYZ != vec3(0, 0, 0)) {
+        tendon_X = newtendonXYZ.x;
+        tendon_Y = newtendonXYZ.y;
+        tendon_Z = newtendonXYZ.z;
     }
 }
 
@@ -80,9 +80,9 @@ void Spring::reposition(const vec3 &newPatellaXYZ, const vec3 &newFemurXYZ) {
 void Spring::update(double deltaTime, double distance) {
     double restLength = calculateRestLength();
     double currentLength = std::sqrt(
-        std::pow(patella_X - femur_X, 2) +
-        std::pow(patella_Y - femur_Y, 2) +
-        std::pow(patella_Z - femur_Z, 2)
+        std::pow(patella_X - tendon_X, 2) +
+        std::pow(patella_Y - tendon_Y, 2) +
+        std::pow(patella_Z - tendon_Z, 2)
     );
 
     double displacement = currentLength - restLength;
@@ -94,9 +94,9 @@ void Spring::update(double deltaTime, double distance) {
     double dampingForce_Z = -dampingCoefficient * velocity_Z;
 
     // Total force
-    double totalForce_X = springForce * (patella_X - femur_X) / currentLength + dampingForce_X;
-    double totalForce_Y = springForce * (patella_Y - femur_Y) / currentLength + dampingForce_Y;
-    double totalForce_Z = springForce * (patella_Z - femur_Z) / currentLength + dampingForce_Z;
+    double totalForce_X = springForce * (patella_X - tendon_X) / currentLength + dampingForce_X;
+    double totalForce_Y = springForce * (patella_Y - tendon_Y) / currentLength + dampingForce_Y;
+    double totalForce_Z = springForce * (patella_Z - tendon_Z) / currentLength + dampingForce_Z;
 
     // Calculate velocity based on distance and deltaTime
     velocity_X = distance / deltaTime;
@@ -138,8 +138,11 @@ void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, c
 
     //std::cout << "Drawing spring with colour: " << colour << std::endl;
 
-    vec3 p0(femur_X, femur_Y, femur_Z);
+    vec3 p0(tendon_X, tendon_Y, tendon_Z);
     vec3 p1(patella_X, patella_Y, patella_Z);
+
+    // Transform patella point to world coordinates
+    p1 = (anim->patellaObj->objToWorldTransform * vec4(p1, 1.0)).toVec3();
 
     //std::cout << "p0: " << p0 << ", p1: " << p1 << std::endl;
 
@@ -168,44 +171,7 @@ void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, c
 
         ps[2 * i] = p0 + CYL_RADIUS * ns[2 * i];
         ps[2 * i + 1] = p1 + CYL_RADIUS * ns[2 * i + 1];
-
-        // Print the points of each drawn segment
-       /*std::cout << "Segment " << i << ": " << std::endl;
-        std::cout << "  ps[" << 2 * i << "] = " << ps[2 * i] << std::endl;
-        std::cout << "  ps[" << 2 * i + 1 << "] = " << ps[2 * i + 1] << std::endl;*/
-
-        // Calculate and print the area of the triangles
-        /*if (i > 0) {
-            float area1 = triangleArea(ps[2 * (i - 1)], ps[2 * (i - 1) + 1], ps[2 * i]);
-            float area2 = triangleArea(ps[2 * (i - 1) + 1], ps[2 * i], ps[2 * i + 1]);
-            std::cout << "  Triangle 1 area: " << area1 << std::endl;
-            std::cout << "  Triangle 2 area: " << area2 << std::endl;
-        }*/
     }
-
-    //std::cout << "ps and ns arrays populated" << std::endl;
-
-    //mat4 translationMatrix = translate(1.0f, 1.0f, 1.0f);
-    //WCS_to_CCS = translationMatrix * WCS_to_CCS;
-
-    // Print the camera perspective matrices
-    /*std::cout << "SPRING WCS_to_VCS matrix: " << std::endl;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            std::cout << WCS_to_VCS[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "SPRING WCS_to_CCS matrix: " << std::endl;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            std::cout << WCS_to_CCS[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }*/
-
-    //glDisable( GL_DEPTH_TEST );
 
     springSegs->drawSegs(GL_TRIANGLE_STRIP, &ps[0], colour, &ns[0], 2 * (NUM_CYL_FACES + 1), WCS_to_VCS, WCS_to_CCS, lightDirVCS);
 

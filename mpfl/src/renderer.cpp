@@ -67,7 +67,8 @@ void Renderer::render( seq<STL*> &objs, seq <vec3> &endpoints, seq <vec3> &skele
 
   // Render the springs
     if (showSprings) {
-        spring->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDir, vec4(0.8, 0.2, 0.2, 1.0));
+        springQuadTendon->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDir, vec4(0.8, 0.2, 0.2, 1.0));
+        springPatellarTendon->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDir, vec4(0.8, 0.2, 0.2, 1.0));
     }
 
   // Draw any segments
@@ -299,7 +300,8 @@ void Renderer::render( seq<STL*> &objs, seq <vec3> &endpoints, seq <vec3> &skele
 
   // Render the springs
     if (showSprings) {
-        spring->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDirVCS, QUAD_COLOUR);
+        springQuadTendon->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDirVCS, QUAD_COLOUR);
+        springPatellarTendon->drawSpring(WCS_to_VCS, WCS_to_CCS, lightDirVCS, QUAD_COLOUR);
 
         // Show quad end points
       if (quadEndPoint1 != vec3(0, 0, 0)) {
@@ -308,9 +310,13 @@ void Renderer::render( seq<STL*> &objs, seq <vec3> &endpoints, seq <vec3> &skele
           sphere->renderGL(sphere_MV, sphere_MVP, lightDir, QUAD_COLOUR);
       }
 
-      if (quadEndPoint2 != vec3(0, 0, 0)) {
-          mat4 sphere_MV = WCS_to_VCS * translate(quadEndPoint2) * sphereScale;
-          mat4 sphere_MVP = WCS_to_CCS * translate(quadEndPoint2) * sphereScale;
+      // Get the patella coordinates from springQuadTendon and transform to world coordinates
+      vec3 patellaXYZ = vec3(springQuadTendon->patella_X, springQuadTendon->patella_Y, springQuadTendon->patella_Z);
+      vec3 quadEndPoint2World = (anim->patellaObj->objToWorldTransform * vec4(patellaXYZ, 1.0)).toVec3();
+
+      if (quadEndPoint2World != vec3(0, 0, 0)) {
+          mat4 sphere_MV = WCS_to_VCS * translate(quadEndPoint2World) * sphereScale;
+          mat4 sphere_MVP = WCS_to_CCS * translate(quadEndPoint2World) * sphereScale;
           sphere->renderGL(sphere_MV, sphere_MVP, lightDir, QUAD_COLOUR);
       }
     }
