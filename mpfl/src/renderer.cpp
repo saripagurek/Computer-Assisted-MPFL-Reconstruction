@@ -319,6 +319,23 @@ void Renderer::render( seq<STL*> &objs, seq <vec3> &endpoints, seq <vec3> &skele
           mat4 sphere_MVP = WCS_to_CCS * translate(quadEndPoint2World) * sphereScale;
           sphere->renderGL(sphere_MV, sphere_MVP, lightDir, QUAD_COLOUR);
       }
+
+      // Show patellar end points
+      if (patellarEndPoint1 != vec3(0, 0, 0)) {
+        mat4 sphere_MV = WCS_to_VCS * translate(patellarEndPoint1) * sphereScale;
+        mat4 sphere_MVP = WCS_to_CCS * translate(patellarEndPoint1) * sphereScale;
+        sphere->renderGL(sphere_MV, sphere_MVP, lightDir, QUAD_COLOUR);
+      }
+
+      // Get the patella coordinates from springPatellarTendon and transform to world coordinates
+      vec3 patellaXYZPatellar = vec3(springPatellarTendon->patella_X, springPatellarTendon->patella_Y, springPatellarTendon->patella_Z);
+      vec3 patellarEndPoint2World = (anim->patellaObj->objToWorldTransform * vec4(patellaXYZPatellar, 1.0)).toVec3();
+
+      if (patellarEndPoint2World != vec3(0, 0, 0)) {
+          mat4 sphere_MV = WCS_to_VCS * translate(patellarEndPoint2World) * sphereScale;
+          mat4 sphere_MVP = WCS_to_CCS * translate(patellarEndPoint2World) * sphereScale;
+          sphere->renderGL(sphere_MV, sphere_MVP, lightDir, QUAD_COLOUR);
+      }
     }
 
   // Done

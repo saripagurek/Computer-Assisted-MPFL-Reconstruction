@@ -78,6 +78,7 @@ extern seq< seq<ShortestPath*> > gridPaths;
 extern int highlightGridPoint;
 extern vec3 leftEpicondyle, rightEpicondyle;
 extern vec3 quadEndPoint1, quadEndPoint2;
+extern vec3 patellarEndPoint1, patellarEndPoint2;
 
 extern const int ablationCathIndex;
 
