@@ -14,7 +14,16 @@ public:
     double patella_X, patella_Y, patella_Z; // Anchor point 2 coordinates
     double velocity_X, velocity_Y, velocity_Z; // Velocity of the patella point
     double weight; // Weight parameter
-    mat4 patellaObjToWorldTransform; // Transformation matrix from object to world coordinates
+
+    // Intermediate values
+    double restLength;
+    double currentLength;
+    double displacement;
+    double springForceMagnitude;
+    vec3 direction;
+    vec3 springForce;
+    vec3 dampingForce;
+    vec3 totalForce;
 
     // Helper function to calculate the rest length based on anchor points
     double calculateRestLength() const;
@@ -44,6 +53,12 @@ public:
 
     // Method to draw the spring as a cylinder
     void drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, const vec4 &colour);
+
+    // Method to calculate the force exerted by the spring
+    vec3 calculateForce();
+
+    // Method to calculate the force matrix exerted by the spring
+    mat4 calculateForceMatrix() const;
 };
 
 #endif // SPRING_H

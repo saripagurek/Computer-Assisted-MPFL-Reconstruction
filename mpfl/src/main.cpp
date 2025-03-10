@@ -1166,7 +1166,6 @@ void findPointUnderMouse(vec2 mousePos, bool ctrlKey, bool shiftKey) {
 
         // If no intersection is found and capturing quad end points, use the mouseWCS position
         if (minIntParam == MAXFLOAT && (capturingQuadEndPoint1 || capturingPatellarEndPoint1)) {
-            std::cout << "No intersection found, using mouseWCS position" << std::endl;
             minIntPoint = mouseWCS;
         }
 

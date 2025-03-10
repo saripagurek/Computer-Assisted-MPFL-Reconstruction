@@ -78,25 +78,28 @@ void Spring::reposition(const vec3 &newtendonXYZ, const vec3 &newPatellaXYZ) {
 
 // Method to calculate the force exerted by the spring
 void Spring::update(double deltaTime, double distance) {
-    double restLength = calculateRestLength();
-    double currentLength = std::sqrt(
+    restLength = calculateRestLength();
+    currentLength = std::sqrt(
         std::pow(patella_X - tendon_X, 2) +
         std::pow(patella_Y - tendon_Y, 2) +
         std::pow(patella_Z - tendon_Z, 2)
     );
 
-    double displacement = currentLength - restLength;
-    double springForce = -springConstant * displacement;
+    displacement = currentLength - restLength;
+    springForceMagnitude = -springConstant * displacement;
+
+    direction = vec3(patella_X - tendon_X, patella_Y - tendon_Y, patella_Z - tendon_Z).normalize();
+    springForce = springForceMagnitude * direction;
 
     // Calculate damping force
-    double dampingForce_X = -dampingCoefficient * velocity_X;
-    double dampingForce_Y = -dampingCoefficient * velocity_Y;
-    double dampingForce_Z = -dampingCoefficient * velocity_Z;
+    dampingForce = vec3(
+        -dampingCoefficient * velocity_X,
+        -dampingCoefficient * velocity_Y,
+        -dampingCoefficient * velocity_Z
+    );
 
     // Total force
-    double totalForce_X = springForce * (patella_X - tendon_X) / currentLength + dampingForce_X;
-    double totalForce_Y = springForce * (patella_Y - tendon_Y) / currentLength + dampingForce_Y;
-    double totalForce_Z = springForce * (patella_Z - tendon_Z) / currentLength + dampingForce_Z;
+    totalForce = springForce + dampingForce;
 
     // Calculate velocity based on distance and deltaTime
     velocity_X = distance / deltaTime;
@@ -104,9 +107,9 @@ void Spring::update(double deltaTime, double distance) {
     velocity_Z = distance / deltaTime;
 
     // Update velocity
-    velocity_X += (totalForce_X * deltaTime);
-    velocity_Y += (totalForce_Y * deltaTime);
-    velocity_Z += (totalForce_Z * deltaTime);
+    velocity_X += (totalForce.x * deltaTime);
+    velocity_Y += (totalForce.y * deltaTime);
+    velocity_Z += (totalForce.z * deltaTime);
 
     // Update position
     //patella_X += velocity_X * deltaTime;
@@ -178,4 +181,34 @@ void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, c
     //glEnable( GL_DEPTH_TEST );
 
     checkGLError("drawSpring");
+}
+
+
+// Method to calculate the force exerted by the spring
+vec3 Spring::calculateForce() {
+    return totalForce;
+}
+
+// Method to calculate the force matrix exerted by the spring
+mat4 Spring::calculateForceMatrix() const {
+    vec3 force = totalForce;
+    force.x *= weight;
+    force.y *= weight;
+    force.z *= weight;
+
+    mat4 forceMatrix;
+
+    // Initialize to identity matrix
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            forceMatrix[i][j] = (i == j) ? 1.0f : 0.0f;
+        }
+    }
+
+    // Set the translation components to the force vector
+    forceMatrix[0][3] = force.x;
+    forceMatrix[1][3] = force.y;
+    forceMatrix[2][3] = force.z;
+
+    return forceMatrix;
 }
