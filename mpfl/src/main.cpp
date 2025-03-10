@@ -59,6 +59,11 @@ vec3 quadEndPoint2(0, 0, 0);
 bool capturingQuadEndPoint1 = false;
 bool capturingQuadEndPoint2 = false;
 
+vec3 patellarEndPoint1(0, 0, 0);
+vec3 patellarEndPoint2(0, 0, 0);
+bool capturingPatellarEndPoint1 = false;
+bool capturingPatellarEndPoint2 = false;
+
 bool  capturingPoint = false;
 int   capturedPointIndex;
 bool  delPressed = false;
@@ -659,6 +664,16 @@ void keyCallback( GLFWwindow* window, int key, int scancode, int action, int mod
       cout << "capturingQuadEndPoint2" << endl;
       break;
 
+    case 'J':
+    capturingPatellarEndPoint1 = true;
+    cout << "capturingPatellarEndPoint1" << endl;
+    break;
+
+    case 'U':    
+    capturingPatellarEndPoint2 = true;
+      cout << "capturingPatellarEndPoint2" << endl;
+      break;
+
     case GLFW_KEY_DOWN:
 
       if (anim->stepForward())
@@ -1133,7 +1148,7 @@ void findPointUnderMouse(vec2 mousePos, bool ctrlKey, bool shiftKey) {
     vec3 mouseWCS = (WCS_to_CCS.inverse() * mouseCCS).toVec3();
 
     // Find point on model
-    if (capturingLeftEpicondyle || capturingRightEpicondyle || capturingPoint || buildGrid || shiftKey || capturingQuadEndPoint1 || capturingQuadEndPoint2) {
+    if (capturingLeftEpicondyle || capturingRightEpicondyle || capturingPoint || buildGrid || shiftKey || capturingQuadEndPoint1 || capturingQuadEndPoint2 || capturingPatellarEndPoint1 || capturingPatellarEndPoint2) {
         vec3 minIntPoint;
         float minIntParam = MAXFLOAT;
         int minObject = -1;
@@ -1150,12 +1165,12 @@ void findPointUnderMouse(vec2 mousePos, bool ctrlKey, bool shiftKey) {
         }
 
         // If no intersection is found and capturing quad end points, use the mouseWCS position
-        if (minIntParam == MAXFLOAT && (capturingQuadEndPoint1)) {
+        if (minIntParam == MAXFLOAT && (capturingQuadEndPoint1 || capturingPatellarEndPoint1)) {
             std::cout << "No intersection found, using mouseWCS position" << std::endl;
             minIntPoint = mouseWCS;
         }
 
-        if (minIntParam != MAXFLOAT || (capturingQuadEndPoint1)) {
+        if (minIntParam != MAXFLOAT || (capturingQuadEndPoint1 || capturingPatellarEndPoint1)) {
             if (capturingLeftEpicondyle) {
                 leftEpicondyle = minIntPoint;
                 capturingLeftEpicondyle = false;
@@ -1166,6 +1181,7 @@ void findPointUnderMouse(vec2 mousePos, bool ctrlKey, bool shiftKey) {
                 anim->saveState();
             } else if (capturingQuadEndPoint1) {
                 quadEndPoint1 = minIntPoint;
+                std::cout << "Captured quadEndPoint1: " << quadEndPoint1 << std::endl;
                 capturingQuadEndPoint1 = false;
                 anim->saveState();
 
@@ -1181,10 +1197,7 @@ void findPointUnderMouse(vec2 mousePos, bool ctrlKey, bool shiftKey) {
               }
               if (minObject == patellaIndex) {
                   // Transform the point to the local coordinate system of the patella object
-                  //quadEndPoint2 = minIntPoint;
                   quadEndPoint2 = (anim->patellaObj->objToWorldTransform.inverse() * vec4(minIntPoint, 1)).toVec3();
-                  std::cout << "Closest obj is patella" << std::endl;
-                  std::cout << "Captured minIntPoint: " << minIntPoint << std::endl;
                   std::cout << "Captured quadEndPoint2: " << quadEndPoint2 << std::endl;
                   capturingQuadEndPoint2 = false;
                   anim->saveState();
@@ -1200,6 +1213,34 @@ void findPointUnderMouse(vec2 mousePos, bool ctrlKey, bool shiftKey) {
                 capturedObjects[capturedPointIndex] = minObject;
                 capturingPoint = false;
                 anim->saveState();
+              } else if (capturingPatellarEndPoint1) {
+                patellarEndPoint1 = minIntPoint;
+                std::cout << "Captured patellarEndPoint1: " << patellarEndPoint1 << std::endl;
+                capturingPatellarEndPoint1 = false;
+                anim->saveState();
+
+                // Update the spring with the new patellar end point 1
+                springPatellarTendon->reposition(patellarEndPoint1, vec3(0, 0, 0));
+            } else if (capturingPatellarEndPoint2) {
+                int patellaIndex = -1;
+                for (int i = 0; i < objs.size(); i++) {
+                    if (objs[i] == anim->patellaObj) {
+                        patellaIndex = i;
+                        break;
+                    }
+                }
+                if (minObject == patellaIndex) {
+                    // Transform the point to the local coordinate system of the patella object
+                    patellarEndPoint2 = (anim->patellaObj->objToWorldTransform.inverse() * vec4(minIntPoint, 1)).toVec3();
+                    std::cout << "Captured patellarEndPoint2: " << patellarEndPoint2 << std::endl;
+                    capturingPatellarEndPoint2 = false;
+                    anim->saveState();
+
+                    // Update the spring with the new patellar end point 2
+                    springPatellarTendon->reposition(vec3(0, 0, 0), patellarEndPoint2);
+                } else {
+                    std::cout << "Patellar end point 2 must be on the patella object" << std::endl;
+                }
             } else if (buildGrid) {
                 if (gridPoints.size() == 1)
                     gridObject = minObject;
@@ -1266,7 +1307,6 @@ void mouseButtonCallback( GLFWwindow* window, int button, int action, int mods )
     if (x == mouse.x && y == mouse.y) {
 
       if (mods & GLFW_MOD_CONTROL || mods & GLFW_MOD_SHIFT) { // CTRL-click: find closest point
-      cout << "CTRL-click" << endl;
 	findPointUnderMouse( mouse, mods & GLFW_MOD_CONTROL, mods & GLFW_MOD_SHIFT );
 	//lookAt = skeletonPoints[ separator->selectedAdjPt ];
       }
@@ -1423,11 +1463,12 @@ int main( int argc, char **argv )
   // Example parameters for the Spring constructor
   double springConstant = 10.0;
   double dampingCoefficient = 0.5;
-  double femur_X = -237.335, femur_Y =  -47.9579, femur_Z =  60.9971;
-  double patella_X = -337.335, patella_Y = -147.9579, patella_Z =  160.9971;
+  double femur_X = -236.50, femur_Y =  -100.40, femur_Z =  205.92;
+  double patella_X = -124.14, patella_Y = -67.45, patella_Z =  10.4;
+  double tibia_X = -230.90, tibia_Y = -6.25, tibia_Z =  -32.25;
 
   springQuadTendon = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z, 1.0);
-  springPatellarTendon = new Spring(springConstant, dampingCoefficient, -100.0, -50.0, 100, patella_X, patella_Y, patella_Z, 1.0);
+  springPatellarTendon = new Spring(springConstant, dampingCoefficient, tibia_X, tibia_Y, tibia_Z, patella_X, patella_Y, patella_Z, 1.0);
 
   axes      = new Axes();
   sphere    = new Sphere();
