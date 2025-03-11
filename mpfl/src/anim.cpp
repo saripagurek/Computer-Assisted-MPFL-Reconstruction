@@ -328,6 +328,21 @@ void Anim::advance( float distance )
 
   patellaObj->objToWorldTransform = T * patellaObj->objToWorldTransform;
 
+  std::cout << "Before applying force matrices: " << std::endl;
+  std::cout << "patellaObj->objToWorldTransform: " << patellaObj->objToWorldTransform << std::endl;
+
+
+  // Get the force matrices from the springs
+  mat4 quadForceMatrix = springQuadTendon->calculateForceMatrix();
+  mat4 patellarForceMatrix = springPatellarTendon->calculateForceMatrix();
+ 
+  // Apply the force matrices to the patella object
+  patellaObj->objToWorldTransform = quadForceMatrix * patellaObj->objToWorldTransform;
+  patellaObj->objToWorldTransform = patellarForceMatrix * patellaObj->objToWorldTransform;
+
+  std::cout << "After applying force matrices: " << std::endl;
+  std::cout << "patellaObj->objToWorldTransform: " << patellaObj->objToWorldTransform << std::endl;
+
   // Record in animation
 
   if (distance > 0) {

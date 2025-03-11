@@ -196,19 +196,24 @@ mat4 Spring::calculateForceMatrix() const {
     force.y *= weight;
     force.z *= weight;
 
-    mat4 forceMatrix;
-
-    // Initialize to identity matrix
+    // Calculate the translation matrix
+    mat4 translationMatrix;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-            forceMatrix[i][j] = (i == j) ? 1.0f : 0.0f;
+            translationMatrix[i][j] = (i == j) ? 1.0f : 0.0f;
         }
     }
+    translationMatrix[0][3] = force.x;
+    translationMatrix[1][3] = force.y;
+    translationMatrix[2][3] = force.z;
 
-    // Set the translation components to the force vector
-    forceMatrix[0][3] = force.x;
-    forceMatrix[1][3] = force.y;
-    forceMatrix[2][3] = force.z;
+    // Calculate the rotation matrix
+    vec3 axis = vec3(0, 0, 1) ^ direction.normalize();
+    float angle = acos((vec3(0, 0, 1) * direction.normalize()));
+    mat4 rotationMatrix = rotate(angle, axis);
+
+    // Combine translation and rotation matrices
+    mat4 forceMatrix = translationMatrix * rotationMatrix;
 
     return forceMatrix;
 }
