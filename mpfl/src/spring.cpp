@@ -96,19 +96,6 @@ void Spring::update(double deltaTime, double updatedLength) {
     frameCounter++;
     totalForce = vec3(0.0, 0.0, 0.0);
 
-    // Skip recalculating currentLength if the spring is in simulation mode
-    /*if (!isSimulating) {
-        // Get the current patella position from anim->patellaObj
-        //patellaWorldPos = (anim->patellaObj->objToWorldTransform * vec4(patella_X, patella_Y, patella_Z, 1.0)).toVec3();
-
-        // Calculate the current length of the spring
-        currentLength = std::sqrt(
-            std::pow(patellaWorldPos.x - tendon_X, 2) +
-            std::pow(patellaWorldPos.y - tendon_Y, 2) +
-            std::pow(patellaWorldPos.z - tendon_Z, 2)
-        );
-    }*/
-
     currentLength = updatedLength;
 
     // Calculate displacement from the rest length  
@@ -161,70 +148,6 @@ void checkGLError(const std::string &msg) {
         std::cerr << "OpenGL error after " << msg << ": " << err << std::endl;
     }
 }
-
-
-// Method to calculate the force matrix exerted by the spring
-/*mat4 Spring::calculateForceMatrix() const {
-
-    std::cout << "  Spring Calculate Matrix" <<std::endl;
-    std::cout << "  Total Force: " << totalForce << std::endl;
-
-    vec3 scaledForce = totalForce;
-    scaledForce.x *= weight;
-    scaledForce.y *= weight;
-    scaledForce.z *= weight;
-
-    std::cout << "  Scaling force by " << weight << std::endl;
-    std::cout << "  Scaled Force: " << scaledForce << std::endl;
-
-    // Calculate the translation matrix
-    mat4 translationMatrix;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            translationMatrix[i][j] = (i == j) ? 1.0f : 0.0f;
-        }
-    }
-    translationMatrix[3][0] = totalForce.x;
-    translationMatrix[3][1] = totalForce.y;
-    translationMatrix[3][2] = totalForce.z;
-
-    // Print translationMatrix for debugging
-    std::cout << "Translation Matrix:" << std::endl;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            std::cout << translationMatrix[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    // Calculate the rotation matrix
-    vec3 up = vec3(0, 1, 0);
-    vec3 axis = up ^ direction.normalize();
-    float angle = acos(up * direction.normalize());
-    mat4 rotationMatrix = rotate(angle, axis);
-
-    // Combine translation and rotation matrices
-    mat4 forceMatrix = translationMatrix * rotationMatrix;
-
-    // Print forceMatrix for debugging
-    std::cout << "Force Matrix:" << std::endl;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            std::cout << forceMatrix[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    // Print how much this translation will move the patella
-    vec4 patellaPos = vec4(patella_X, patella_Y, patella_Z, 1.0);
-    vec4 translatedPatellaPos = forceMatrix * patellaPos;
-    std::cout << "Translated Patella Position: " << translatedPatellaPos.toVec3() << std::endl;
-    // Print distance moved
-    double distanceMoved = (translatedPatellaPos.toVec3() - patellaPos.toVec3()).length();
-    std::cout << "Distance Moved: " << distanceMoved << std::endl;
-
-    return forceMatrix;
-}*/
 
 
 // Helper method to draw the spring as a cylinder

@@ -59,8 +59,6 @@ public:
     // Method to draw the spring as a cylinder
     void drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, const vec4 &colour);
 
-    // Method to calculate the force matrix exerted by the spring
-    // mat4 calculateForceMatrix() const;
 };
 
 
