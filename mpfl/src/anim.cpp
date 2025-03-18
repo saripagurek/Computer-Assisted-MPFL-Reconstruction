@@ -331,7 +331,7 @@ void Anim::advance( float distance )
 
   // Create a new PatellaSimulation instance
 
-  double patellaMass = 20.0;
+  double patellaMass = 5.0;
   std::vector<vec3> test;
   PatellaSimulation patellaSim(patellaObj, patellaMass);
 

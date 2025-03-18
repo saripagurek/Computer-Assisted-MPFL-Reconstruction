@@ -8,6 +8,7 @@ Spring::Spring(double k, double damping, double t_X, double t_Y, double t_Z, dou
       patella_X(p_X), patella_Y(p_Y), patella_Z(p_Z), velocity_X(0.0), velocity_Y(0.0), velocity_Z(0.0), weight(weight), frameCounter(0) {
         restLength = calculateRestLength();
         previousLength = restLength;
+        isSimulating = false;
       }
 
 // Private helper function
@@ -45,6 +46,10 @@ void Spring::setVelocity(double v_X, double v_Y, double v_Z) {
 
 void Spring::setWeight(double w) {
     weight = w;
+}
+
+void Spring::setSimulating(bool simulating) {
+    isSimulating = simulating;
 }
 
 // Getters
@@ -85,28 +90,32 @@ void Spring::reposition(const vec3 &newtendonXYZ, const vec3 &newPatellaXYZ) {
 }
 
 // Method to calculate the force exerted by the spring
-void Spring::update(double deltaTime) {
+void Spring::update(double deltaTime, double updatedLength) {
 
     // Increment frame counter
     frameCounter++;
     totalForce = vec3(0.0, 0.0, 0.0);
 
-    // Get the current patella position from anim->patellaObj
-    patellaWorldPos = (anim->patellaObj->objToWorldTransform * vec4(patella_X, patella_Y, patella_Z, 1.0)).toVec3();
+    // Skip recalculating currentLength if the spring is in simulation mode
+    /*if (!isSimulating) {
+        // Get the current patella position from anim->patellaObj
+        //patellaWorldPos = (anim->patellaObj->objToWorldTransform * vec4(patella_X, patella_Y, patella_Z, 1.0)).toVec3();
 
-    // Calculate the current length of the spring
-    currentLength = std::sqrt(
-        std::pow(patellaWorldPos.x - tendon_X, 2) +
-        std::pow(patellaWorldPos.y - tendon_Y, 2) +
-        std::pow(patellaWorldPos.z - tendon_Z, 2)
-    );
+        // Calculate the current length of the spring
+        currentLength = std::sqrt(
+            std::pow(patellaWorldPos.x - tendon_X, 2) +
+            std::pow(patellaWorldPos.y - tendon_Y, 2) +
+            std::pow(patellaWorldPos.z - tendon_Z, 2)
+        );
+    }*/
 
-    // Calculate displacement from the rest length
+    currentLength = updatedLength;
+
+    // Calculate displacement from the rest length  
     displacement = currentLength - restLength;
 
     // Calculate spring velocity as the rate of change of length
     double springVelocity = (currentLength - previousLength) / deltaTime;
-    previousLength = currentLength;
 
     // Clamp the spring velocity to avoid instability
     const double maxSpringVelocity = 5.0;
@@ -132,12 +141,16 @@ void Spring::update(double deltaTime) {
     /*if (frameCounter % 10 == 0) {
         std::cout << "Spring Update:" << std::endl;
         std::cout << "  Current Length: " << currentLength << std::endl;
+        std::cout << "  Previous Length: " << previousLength << std::endl;
+        std::cout << "  Rest Length: " << restLength << std::endl;
         std::cout << "  Displacement: " << displacement << std::endl;
         std::cout << "  Spring Velocity: " << springVelocity << std::endl;
         std::cout << "  Spring Force: " << springForce << std::endl;
         std::cout << "  Damping Force: " << dampingForce << std::endl;
         std::cout << "  Total Force: " << totalForce << std::endl;
     }*/
+
+    previousLength = currentLength;
 
 }
 

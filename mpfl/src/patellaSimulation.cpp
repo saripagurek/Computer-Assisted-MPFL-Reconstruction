@@ -9,8 +9,8 @@ PatellaSimulation::PatellaSimulation(STL* patellaObj, double mass)
 
 // Method to simulate patella movement
 void PatellaSimulation::simulate(const std::vector<vec3>& separatorPoints) {
-    double minVelocity = 0.001;
-    double minAcceleration = 0.001;
+    double minVelocity = 0.01;
+    double minAcceleration = 0.01;
     double timeStep = 0.01;
     int stepNumber = 0;
 
@@ -28,9 +28,9 @@ void PatellaSimulation::simulate(const std::vector<vec3>& separatorPoints) {
         std::cout << "  Velocity: " << velocity.length() << std::endl;
         std::cout << "  Acceleration: " << acceleration.length() << std::endl;
        
-    } while ((velocity.length() > minVelocity || acceleration.length() > minAcceleration) && stepNumber < 200);
+    } while ((velocity.length() > minVelocity || acceleration.length() > minAcceleration) && stepNumber < 500);
 
-    if (stepNumber >= 50) {
+    if (stepNumber >= 500) {
         std::cout << "Simulation stopped after reaching the maximum number of steps" << std::endl;
     }
 }
@@ -45,7 +45,8 @@ void PatellaSimulation::step(double timeStep) {
     // Recalculate the forces from all the springs in the list
     for (Spring* spring : springs) {
         vec3 springVector = currentPosition - vec3(spring->tendon_X, spring->tendon_Y, spring->tendon_Z);
-        spring->update(timeStep);
+        double updatedLength = springVector.length();
+        spring->update(timeStep, updatedLength);
 
         totalForce.x = totalForce.x + spring->totalForce.x;
         totalForce.y = totalForce.y + spring->totalForce.y;
@@ -59,8 +60,6 @@ void PatellaSimulation::step(double timeStep) {
         torque.x += springTorque.x;
         torque.y += springTorque.y;
         torque.z += springTorque.z;
-
-        spring->currentLength = springVector.length();
     }
 
     // Recalculate the acceleration based on the total force and mass
@@ -68,10 +67,10 @@ void PatellaSimulation::step(double timeStep) {
     acceleration.y = totalForce.y / mass;
     acceleration.z = totalForce.z / mass;
 
-    /*const double accelerationDamping = 0.95;
+    const double accelerationDamping = 0.95;
     acceleration.x *= accelerationDamping;
     acceleration.y *= accelerationDamping;
-    acceleration.z *= accelerationDamping;*/
+    acceleration.z *= accelerationDamping;
 
 
     // Update velocity based on acceleration
@@ -79,7 +78,7 @@ void PatellaSimulation::step(double timeStep) {
     velocity.y += acceleration.y * timeStep;
     velocity.z += acceleration.z * timeStep;
 
-    const double velocityDamping = 0.95;
+    const double velocityDamping = 0.5;
     velocity.x *= velocityDamping;
     velocity.y *= velocityDamping;
     velocity.z *= velocityDamping;
@@ -89,19 +88,6 @@ void PatellaSimulation::step(double timeStep) {
     currentPosition.y += velocity.y * timeStep;
     currentPosition.z += velocity.z * timeStep;
 
-     // Calculate angular acceleration from torque and moment of inertia
-     const double inertia = 1.0;  // Placeholder for the moment of inertia
-     vec3 angularAcceleration = vec3(torque.x / inertia, torque.y / inertia, torque.z / inertia);
-     // vec3 angularVelocity += angularAcceleration * timeStep;
-
-     // vec3 rotationDelta = angularVelocity * timeStep;
-     //apply rotationDelta to patellaObj->objToWorldTransform later
-
-    // Print debug information
-    /*std::cout << "Patella Simulation Step:" << std::endl;
-    std::cout << "  Current Position: " << currentPosition << std::endl;
-    std::cout << "  Velocity: " << velocity << std::endl;
-    std::cout << "  Total Force: " << totalForce << std::endl;*/
 }
 
 // Method to add a spring to the simulation
