@@ -19,6 +19,7 @@ public:
 
     // Intermediate values
     double restLength;
+    double previousLength;
     double currentLength;
     double displacement;
     double springForceMagnitude;
@@ -51,7 +52,7 @@ public:
     void reposition(const vec3 &newPatellaXYZ, const vec3 &newtendonXYZ);
 
     // Method to update the spring's state based on time interval
-    void update(double deltaTime, double distance);
+    void update(double deltaTime);
 
     // Method to draw the spring as a cylinder
     void drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, const vec4 &colour);

@@ -4,6 +4,7 @@
 #include "headers.h"
 #include "main.h"
 #include "anim.h"
+#include "patellaSimulation.h"
 
 #include <iomanip>
 #include <armadillo>  // for SVD
@@ -330,12 +331,16 @@ void Anim::advance( float distance )
 
   // Create a new PatellaSimulation instance
 
-  /*double patellaMass = 1.0;
+  double patellaMass = 20.0;
+  std::vector<vec3> test;
   PatellaSimulation patellaSim(patellaObj, patellaMass);
 
   // Add the tendon springs to the patella simulation
   patellaSim.addSpring(springQuadTendon);
-  patellaSim.addSpring(springPatellarTendon);*/
+  patellaSim.addSpring(springPatellarTendon);
+
+  // Simulate the patella movement
+  patellaSim.simulate(test);
 
 
 

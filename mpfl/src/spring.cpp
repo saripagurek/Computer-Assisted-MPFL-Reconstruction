@@ -5,7 +5,10 @@
 // Constructor
 Spring::Spring(double k, double damping, double t_X, double t_Y, double t_Z, double p_X, double p_Y, double p_Z, double weight)
     : springConstant(k), dampingCoefficient(damping), tendon_X(t_X), tendon_Y(t_Y), tendon_Z(t_Z),
-      patella_X(p_X), patella_Y(p_Y), patella_Z(p_Z), velocity_X(0.0), velocity_Y(0.0), velocity_Z(0.0), weight(weight), frameCounter(0) {}
+      patella_X(p_X), patella_Y(p_Y), patella_Z(p_Z), velocity_X(0.0), velocity_Y(0.0), velocity_Z(0.0), weight(weight), frameCounter(0) {
+        restLength = calculateRestLength();
+        previousLength = restLength;
+      }
 
 // Private helper function
 double Spring::calculateRestLength() const {
@@ -78,61 +81,49 @@ void Spring::reposition(const vec3 &newtendonXYZ, const vec3 &newPatellaXYZ) {
 
     // Update rest length based on new anchor points
     restLength = calculateRestLength();
-
-    // Print debug information
-    /*std::cout << "Spring Reposition:" << std::endl;
-    std::cout << "  Tendon: (" << tendon_X << ", " << tendon_Y << ", " << tendon_Z << ")" << std::endl;
-    std::cout << "  Patella: (" << patella_X << ", " << patella_Y << ", " << patella_Z << ")" << std::endl;
-    std::cout << "  Displacement: " << displacement << std::endl;
-    std::cout << "  Spring Force: " << springForce << std::endl;
-    std::cout << "  Damping Force: " << dampingForce << std::endl;
-    std::cout << "  Total Force: " << totalForce << std::endl;*/
+    previousLength = restLength;
 }
 
 // Method to calculate the force exerted by the spring
-void Spring::update(double deltaTime, double distance) {
+void Spring::update(double deltaTime) {
 
     // Increment frame counter
     frameCounter++;
+    totalForce = vec3(0.0, 0.0, 0.0);
 
     // Get the current patella position from anim->patellaObj
     patellaWorldPos = (anim->patellaObj->objToWorldTransform * vec4(patella_X, patella_Y, patella_Z, 1.0)).toVec3();
 
+    // Calculate the current length of the spring
     currentLength = std::sqrt(
         std::pow(patellaWorldPos.x - tendon_X, 2) +
         std::pow(patellaWorldPos.y - tendon_Y, 2) +
         std::pow(patellaWorldPos.z - tendon_Z, 2)
     );
 
-
+    // Calculate displacement from the rest length
     displacement = currentLength - restLength;
 
-    // Calculate velocity based on distance and deltaTime
-    velocity_X = displacement / deltaTime;
-    velocity_Y = displacement / deltaTime;
-    velocity_Z = displacement / deltaTime;
+    // Calculate spring velocity as the rate of change of length
+    double springVelocity = (currentLength - previousLength) / deltaTime;
+    previousLength = currentLength;
 
-    // Apply damping factor to limit the maximum velocity
-    /*const double maxVelocity = 2.0; // Adjust this value as needed
-    if (velocity_X > maxVelocity) velocity_X = maxVelocity;
-    if (velocity_Y > maxVelocity) velocity_Y = maxVelocity;
-    if (velocity_Z > maxVelocity) velocity_Z = maxVelocity;
+    // Clamp the spring velocity to avoid instability
+    const double maxSpringVelocity = 5.0;
+    if (springVelocity > maxSpringVelocity) {
+        springVelocity = maxSpringVelocity;
+    } else if (springVelocity < -maxSpringVelocity) {
+        springVelocity = -maxSpringVelocity;
+    }
 
-    if (velocity_X < -maxVelocity) velocity_X = -maxVelocity;
-    if (velocity_Y < -maxVelocity) velocity_Y = -maxVelocity;
-    if (velocity_Z < -maxVelocity) velocity_Z = -maxVelocity;*/
-
+    // Calculate direction of the spring force
     direction = vec3(patella_X - tendon_X, patella_Y - tendon_Y, patella_Z - tendon_Z).normalize();
 
     // Hooke's law: F = -kx
     springForce = -springConstant * displacement * direction;
 
     // Damping force: F = -bv
-    dampingForce = vec3(
-        -dampingCoefficient * velocity_X,
-        -dampingCoefficient * velocity_Y,
-        -dampingCoefficient * velocity_Z
-    );
+    dampingForce = -dampingCoefficient * springVelocity * direction;
 
     // Total force
     totalForce = springForce + dampingForce;
@@ -140,17 +131,12 @@ void Spring::update(double deltaTime, double distance) {
     // Print debug information every 5 frames
     /*if (frameCounter % 10 == 0) {
         std::cout << "Spring Update:" << std::endl;
-        std::cout << "  Tendon: (" << tendon_X << ", " << tendon_Y << ", " << tendon_Z << ")" << std::endl;
-        std::cout << "  Patella: (" << patella_X << ", " << patella_Y << ", " << patella_Z << ")" << std::endl;
-        std::cout << "  Un-Coonverted World Position: " << patellaWorldPos << std::endl;
         std::cout << "  Current Length: " << currentLength << std::endl;
-        std::cout << "  Rest Length: " << restLength << std::endl;
         std::cout << "  Displacement: " << displacement << std::endl;
+        std::cout << "  Spring Velocity: " << springVelocity << std::endl;
         std::cout << "  Spring Force: " << springForce << std::endl;
         std::cout << "  Damping Force: " << dampingForce << std::endl;
         std::cout << "  Total Force: " << totalForce << std::endl;
-        std::cout << "  Velocity: (" << velocity_X << ", " << velocity_Y << ", " << velocity_Z << ")" << std::endl;
-        std::cout << "  Total Force Magnitude: " << springForce.length() << std::endl;
     }*/
 
 }

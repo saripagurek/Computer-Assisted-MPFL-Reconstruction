@@ -1460,8 +1460,8 @@ int main( int argc, char **argv )
   // Set up renderer
 
   // Example parameters for the Spring constructor
-  double springConstant = 10.0;
-  double dampingCoefficient = 0.5;
+  double springConstant = 1.0;
+  double dampingCoefficient = 5.0;
   double femur_X = -236.50, femur_Y =  -100.40, femur_Z =  205.92;
   double patella_X = -124.14, patella_Y = -67.45, patella_Z =  10.4;
   double tibia_X = -230.90, tibia_Y = -6.25, tibia_Z =  -32.25;
@@ -1518,8 +1518,8 @@ int main( int argc, char **argv )
 
     springElapsedSeconds = springElapsedSeconds * 100.0;
     // std::cout << "springElapsedSeconds: " << springElapsedSeconds << std::endl;
-    springQuadTendon->update(springElapsedSeconds, distance);
-    springPatellarTendon->update(springElapsedSeconds, distance);
+    //springQuadTendon->update(springElapsedSeconds, distance);
+    //springPatellarTendon->update(springElapsedSeconds, distance);
 
     // Clear, display, and check for events
 
