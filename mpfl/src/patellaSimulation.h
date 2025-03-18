@@ -24,7 +24,7 @@ public:
     void step(double deltaTime);
 
     // Method to get the new position of the patella object
-    vec3 getNewPosition() const;
+    mat4 getNewPosition() const;
 
 private:
     STL* patellaObj; // Pointer to the patella object

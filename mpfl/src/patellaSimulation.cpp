@@ -11,11 +11,13 @@ PatellaSimulation::PatellaSimulation(STL* patellaObj, double mass)
 void PatellaSimulation::simulate(const std::vector<vec3>& separatorPoints) {
     double minVelocity = 0.01;
     double minAcceleration = 0.01;
-    double timeStep = 0.01;
+    double timeStep = 0.1;
     int stepNumber = 0;
+    int maxSteps = 750;
 
     // Initialize the current position based on the patella object
     currentPosition = vec3(patellaObj->objToWorldTransform[0][3], patellaObj->objToWorldTransform[1][3], patellaObj->objToWorldTransform[2][3]);
+    vec3 patellaBeforeCoords = currentPosition;
 
     do {
         // Perform one simulation step
@@ -23,16 +25,26 @@ void PatellaSimulation::simulate(const std::vector<vec3>& separatorPoints) {
         stepNumber++;
 
         // Print debug information
-        std::cout << "Patella Simulation Step " << stepNumber << std::endl;
-        std::cout << "  Current Position: " << currentPosition << std::endl;
-        std::cout << "  Velocity: " << velocity.length() << std::endl;
-        std::cout << "  Acceleration: " << acceleration.length() << std::endl;
+        if (stepNumber % 50 == 0) {
+            std::cout << "Patella Simulation Step " << stepNumber << std::endl;
+            std::cout << "  Current Position: " << currentPosition << std::endl;
+            std::cout << "  Velocity: " << velocity.length() << std::endl;
+            std::cout << "  Acceleration: " << acceleration.length() << std::endl;
+        }
        
-    } while ((velocity.length() > minVelocity || acceleration.length() > minAcceleration) && stepNumber < 500);
+    //} while ((velocity.length() > minVelocity || acceleration.length() > minAcceleration) && stepNumber < maxSteps);
+    } while (velocity.length() > minVelocity || acceleration.length() > minAcceleration);
 
-    if (stepNumber >= 500) {
+    if (stepNumber >= maxSteps) {
         std::cout << "Simulation stopped after reaching the maximum number of steps" << std::endl;
     }
+
+    // Calculate and print the distance from the patellaBeforeCoords to the new patella coordinates
+    vec3 patellaAfterCoords = currentPosition;
+    double distanceMoved = (patellaAfterCoords - patellaBeforeCoords).length();
+    std::cout << "Distance moved: " << distanceMoved << std::endl;
+    std::cout << "Before: " << patellaBeforeCoords << std::endl;
+    std::cout << "After: " << patellaAfterCoords << std::endl;
 }
 
 // Method to simulate one time step
@@ -100,7 +112,9 @@ const std::vector<Spring*>& PatellaSimulation::getSprings() const {
     return springs;
 }
 
-// Method to get the new position of the patella object
-vec3 PatellaSimulation::getNewPosition() const {
-    return currentPosition;
+// Method to get the new transformation matrix of the patella object
+mat4 PatellaSimulation::getNewPosition() const {
+    // Create a translation matrix based on the current position
+    mat4 translationMatrix = translate(currentPosition.x, currentPosition.y, currentPosition.z);
+    return translationMatrix;
 }

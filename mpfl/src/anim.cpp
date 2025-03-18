@@ -325,10 +325,6 @@ void Anim::advance( float distance )
   
   findTransform( T, distance, (leftEpicondyle - rightEpicondyle).normalize(), 0.5 * (leftEpicondyle + rightEpicondyle) );
 
-  // Apply to patella
-
-  patellaObj->objToWorldTransform = T * patellaObj->objToWorldTransform;
-
   // Create a new PatellaSimulation instance
 
   double patellaMass = 5.0;
@@ -342,6 +338,14 @@ void Anim::advance( float distance )
   // Simulate the patella movement
   patellaSim.simulate(test);
 
+  //Set the patella object to the new position
+
+  patellaObj->objToWorldTransform = patellaSim.getNewPosition();
+
+
+  // Apply to patella
+
+  patellaObj->objToWorldTransform = T * patellaObj->objToWorldTransform;
 
 
   //std::cout << "Before applying force matrices: " << std::endl;
