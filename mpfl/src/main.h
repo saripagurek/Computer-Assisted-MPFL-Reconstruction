@@ -13,12 +13,12 @@
 #include "tube.h"
 #include "drawSegs.h"
 #include "separator.h"
-#include "anim.h"
 #include "colourmap.h"
 #include "stl.h"
 #include "strokefont.h"
 #include "shortest.h"
 #include "spring.h"
+#include "anim.h"
 
 extern GLuint windowWidth, windowHeight;
 extern GLFWwindow *window;

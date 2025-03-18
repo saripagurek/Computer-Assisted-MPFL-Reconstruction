@@ -5,7 +5,7 @@
 // Constructor
 Spring::Spring(double k, double damping, double t_X, double t_Y, double t_Z, double p_X, double p_Y, double p_Z, double weight)
     : springConstant(k), dampingCoefficient(damping), tendon_X(t_X), tendon_Y(t_Y), tendon_Z(t_Z),
-      patella_X(p_X), patella_Y(p_Y), patella_Z(p_Z), velocity_X(0.0), velocity_Y(0.0), velocity_Z(0.0), weight(weight) {}
+      patella_X(p_X), patella_Y(p_Y), patella_Z(p_Z), velocity_X(0.0), velocity_Y(0.0), velocity_Z(0.0), weight(weight), frameCounter(0) {}
 
 // Private helper function
 double Spring::calculateRestLength() const {
@@ -61,6 +61,7 @@ double Spring::getWeight() const {
     return weight;
 }
 
+
 // Method to reposition the spring's anchor points
 void Spring::reposition(const vec3 &newtendonXYZ, const vec3 &newPatellaXYZ) {
     if (newPatellaXYZ != vec3(0, 0, 0)) {
@@ -74,24 +75,59 @@ void Spring::reposition(const vec3 &newtendonXYZ, const vec3 &newPatellaXYZ) {
         tendon_Y = newtendonXYZ.y;
         tendon_Z = newtendonXYZ.z;
     }
+
+    // Update rest length based on new anchor points
+    restLength = calculateRestLength();
+
+    // Print debug information
+    /*std::cout << "Spring Reposition:" << std::endl;
+    std::cout << "  Tendon: (" << tendon_X << ", " << tendon_Y << ", " << tendon_Z << ")" << std::endl;
+    std::cout << "  Patella: (" << patella_X << ", " << patella_Y << ", " << patella_Z << ")" << std::endl;
+    std::cout << "  Displacement: " << displacement << std::endl;
+    std::cout << "  Spring Force: " << springForce << std::endl;
+    std::cout << "  Damping Force: " << dampingForce << std::endl;
+    std::cout << "  Total Force: " << totalForce << std::endl;*/
 }
 
 // Method to calculate the force exerted by the spring
 void Spring::update(double deltaTime, double distance) {
-    restLength = calculateRestLength();
+
+    // Increment frame counter
+    frameCounter++;
+
+    // Get the current patella position from anim->patellaObj
+    patellaWorldPos = (anim->patellaObj->objToWorldTransform * vec4(patella_X, patella_Y, patella_Z, 1.0)).toVec3();
+
     currentLength = std::sqrt(
-        std::pow(patella_X - tendon_X, 2) +
-        std::pow(patella_Y - tendon_Y, 2) +
-        std::pow(patella_Z - tendon_Z, 2)
+        std::pow(patellaWorldPos.x - tendon_X, 2) +
+        std::pow(patellaWorldPos.y - tendon_Y, 2) +
+        std::pow(patellaWorldPos.z - tendon_Z, 2)
     );
 
+
     displacement = currentLength - restLength;
-    springForceMagnitude = -springConstant * displacement;
+
+    // Calculate velocity based on distance and deltaTime
+    velocity_X = displacement / deltaTime;
+    velocity_Y = displacement / deltaTime;
+    velocity_Z = displacement / deltaTime;
+
+    // Apply damping factor to limit the maximum velocity
+    /*const double maxVelocity = 2.0; // Adjust this value as needed
+    if (velocity_X > maxVelocity) velocity_X = maxVelocity;
+    if (velocity_Y > maxVelocity) velocity_Y = maxVelocity;
+    if (velocity_Z > maxVelocity) velocity_Z = maxVelocity;
+
+    if (velocity_X < -maxVelocity) velocity_X = -maxVelocity;
+    if (velocity_Y < -maxVelocity) velocity_Y = -maxVelocity;
+    if (velocity_Z < -maxVelocity) velocity_Z = -maxVelocity;*/
 
     direction = vec3(patella_X - tendon_X, patella_Y - tendon_Y, patella_Z - tendon_Z).normalize();
-    springForce = springForceMagnitude * direction;
 
-    // Calculate damping force
+    // Hooke's law: F = -kx
+    springForce = -springConstant * displacement * direction;
+
+    // Damping force: F = -bv
     dampingForce = vec3(
         -dampingCoefficient * velocity_X,
         -dampingCoefficient * velocity_Y,
@@ -101,20 +137,22 @@ void Spring::update(double deltaTime, double distance) {
     // Total force
     totalForce = springForce + dampingForce;
 
-    // Calculate velocity based on distance and deltaTime
-    velocity_X = distance / deltaTime;
-    velocity_Y = distance / deltaTime;
-    velocity_Z = distance / deltaTime;
+    // Print debug information every 5 frames
+    /*if (frameCounter % 10 == 0) {
+        std::cout << "Spring Update:" << std::endl;
+        std::cout << "  Tendon: (" << tendon_X << ", " << tendon_Y << ", " << tendon_Z << ")" << std::endl;
+        std::cout << "  Patella: (" << patella_X << ", " << patella_Y << ", " << patella_Z << ")" << std::endl;
+        std::cout << "  Un-Coonverted World Position: " << patellaWorldPos << std::endl;
+        std::cout << "  Current Length: " << currentLength << std::endl;
+        std::cout << "  Rest Length: " << restLength << std::endl;
+        std::cout << "  Displacement: " << displacement << std::endl;
+        std::cout << "  Spring Force: " << springForce << std::endl;
+        std::cout << "  Damping Force: " << dampingForce << std::endl;
+        std::cout << "  Total Force: " << totalForce << std::endl;
+        std::cout << "  Velocity: (" << velocity_X << ", " << velocity_Y << ", " << velocity_Z << ")" << std::endl;
+        std::cout << "  Total Force Magnitude: " << springForce.length() << std::endl;
+    }*/
 
-    // Update velocity
-    velocity_X += (totalForce.x * deltaTime);
-    velocity_Y += (totalForce.y * deltaTime);
-    velocity_Z += (totalForce.z * deltaTime);
-
-    // Update position
-    //patella_X += velocity_X * deltaTime;
-    //patella_Y += velocity_Y * deltaTime;
-    //patella_Z += velocity_Z * deltaTime;
 }
 
 
@@ -125,29 +163,79 @@ void checkGLError(const std::string &msg) {
     }
 }
 
-// Function to calculate the area of a triangle given its vertices
-float triangleArea(const vec3 &a, const vec3 &b, const vec3 &c) {
-    return 0.5f * ((b - a) ^ (c - a)).length();
-}
+
+// Method to calculate the force matrix exerted by the spring
+/*mat4 Spring::calculateForceMatrix() const {
+
+    std::cout << "  Spring Calculate Matrix" <<std::endl;
+    std::cout << "  Total Force: " << totalForce << std::endl;
+
+    vec3 scaledForce = totalForce;
+    scaledForce.x *= weight;
+    scaledForce.y *= weight;
+    scaledForce.z *= weight;
+
+    std::cout << "  Scaling force by " << weight << std::endl;
+    std::cout << "  Scaled Force: " << scaledForce << std::endl;
+
+    // Calculate the translation matrix
+    mat4 translationMatrix;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            translationMatrix[i][j] = (i == j) ? 1.0f : 0.0f;
+        }
+    }
+    translationMatrix[3][0] = totalForce.x;
+    translationMatrix[3][1] = totalForce.y;
+    translationMatrix[3][2] = totalForce.z;
+
+    // Print translationMatrix for debugging
+    std::cout << "Translation Matrix:" << std::endl;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            std::cout << translationMatrix[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Calculate the rotation matrix
+    vec3 up = vec3(0, 1, 0);
+    vec3 axis = up ^ direction.normalize();
+    float angle = acos(up * direction.normalize());
+    mat4 rotationMatrix = rotate(angle, axis);
+
+    // Combine translation and rotation matrices
+    mat4 forceMatrix = translationMatrix * rotationMatrix;
+
+    // Print forceMatrix for debugging
+    std::cout << "Force Matrix:" << std::endl;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            std::cout << forceMatrix[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Print how much this translation will move the patella
+    vec4 patellaPos = vec4(patella_X, patella_Y, patella_Z, 1.0);
+    vec4 translatedPatellaPos = forceMatrix * patellaPos;
+    std::cout << "Translated Patella Position: " << translatedPatellaPos.toVec3() << std::endl;
+    // Print distance moved
+    double distanceMoved = (translatedPatellaPos.toVec3() - patellaPos.toVec3()).length();
+    std::cout << "Distance Moved: " << distanceMoved << std::endl;
+
+    return forceMatrix;
+}*/
+
 
 // Helper method to draw the spring as a cylinder
 void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, const vec4 &colour) {
-
-    // Print the current velocities of the spring
-    /*std::cout << "Spring velocities: " << std::endl;
-    std::cout << "  velocity_X: " << velocity_X << std::endl;
-    std::cout << "  velocity_Y: " << velocity_Y << std::endl;
-    std::cout << "  velocity_Z: " << velocity_Z << std::endl;*/
-
-    //std::cout << "Drawing spring with colour: " << colour << std::endl;
 
     vec3 p0(tendon_X, tendon_Y, tendon_Z);
     vec3 p1(patella_X, patella_Y, patella_Z);
 
     // Transform patella point to world coordinates
     p1 = (anim->patellaObj->objToWorldTransform * vec4(p1, 1.0)).toVec3();
-
-    //std::cout << "p0: " << p0 << ", p1: " << p1 << std::endl;
 
     vec3 x0 = (p1 - p0).perp1().normalize();
     vec3 x1 = x0;
@@ -178,42 +266,5 @@ void Spring::drawSpring(mat4 &WCS_to_VCS, mat4 &WCS_to_CCS, vec3 &lightDirVCS, c
 
     springSegs->drawSegs(GL_TRIANGLE_STRIP, &ps[0], colour, &ns[0], 2 * (NUM_CYL_FACES + 1), WCS_to_VCS, WCS_to_CCS, lightDirVCS);
 
-    //glEnable( GL_DEPTH_TEST );
-
     checkGLError("drawSpring");
-}
-
-
-// Method to calculate the force exerted by the spring
-vec3 Spring::calculateForce() {
-    return totalForce;
-}
-
-// Method to calculate the force matrix exerted by the spring
-mat4 Spring::calculateForceMatrix() const {
-    vec3 force = totalForce;
-    force.x *= weight;
-    force.y *= weight;
-    force.z *= weight;
-
-    // Calculate the translation matrix
-    mat4 translationMatrix;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            translationMatrix[i][j] = (i == j) ? 1.0f : 0.0f;
-        }
-    }
-    translationMatrix[0][3] = force.x;
-    translationMatrix[1][3] = force.y;
-    translationMatrix[2][3] = force.z;
-
-    // Calculate the rotation matrix
-    vec3 axis = vec3(0, 0, 1) ^ direction.normalize();
-    float angle = acos((vec3(0, 0, 1) * direction.normalize()));
-    mat4 rotationMatrix = rotate(angle, axis);
-
-    // Combine translation and rotation matrices
-    mat4 forceMatrix = translationMatrix * rotationMatrix;
-
-    return forceMatrix;
 }

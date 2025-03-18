@@ -5,7 +5,7 @@ vpath %.cpp ../src
 vpath %.c   ../src/glad/src
 vpath %.o   ../obj
 
-OBJS = main.o gpuProgram.o linalg.o stl.o renderer.o separator.o anim.o csv.o gbuffer.o axes.o sphere.o tube.o drawSegs.o strokefont.o fg_stroke.o glad.o colourmap.o priority.o graph.o shortest.o spring.o
+OBJS = main.o gpuProgram.o linalg.o stl.o renderer.o separator.o anim.o csv.o gbuffer.o axes.o sphere.o tube.o drawSegs.o strokefont.o fg_stroke.o glad.o colourmap.o priority.o graph.o shortest.o spring.o patellaSimulation.o
 
 EXEC = mpfl
 
@@ -182,3 +182,4 @@ tube.o: ../src/glad/include/glad/glad.h
 tube.o: ../src/glad/include/KHR/khrplatform.h ../src/gpuProgram.h
 spring.o: ../src/spring.h ../src/linalg.h ../src/seq.h ../src/headers.h 
 spring.o: ../src/glad/include/glad/glad.h ../src/glad/include/KHR/khrplatform.h ../src/gpuProgram.h
+patellaSimulation.o: ../src/patellaSimulation.h ../src/linalg.h ../src/stl.h ../src/spring.h

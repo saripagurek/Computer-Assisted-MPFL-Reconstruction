@@ -328,20 +328,48 @@ void Anim::advance( float distance )
 
   patellaObj->objToWorldTransform = T * patellaObj->objToWorldTransform;
 
-  std::cout << "Before applying force matrices: " << std::endl;
-  std::cout << "patellaObj->objToWorldTransform: " << patellaObj->objToWorldTransform << std::endl;
+  // Create a new PatellaSimulation instance
+
+  /*double patellaMass = 1.0;
+  PatellaSimulation patellaSim(patellaObj, patellaMass);
+
+  // Add the tendon springs to the patella simulation
+  patellaSim.addSpring(springQuadTendon);
+  patellaSim.addSpring(springPatellarTendon);*/
+
+
+
+  //std::cout << "Before applying force matrices: " << std::endl;
+  //std::cout << "patellaObj->objToWorldTransform: " << patellaObj->objToWorldTransform << std::endl;
+
+  // Store patella before coordinates
+  //vec3 patellaBeforeCoords = vec3(patellaObj->objToWorldTransform[0][3], patellaObj->objToWorldTransform[1][3], patellaObj->objToWorldTransform[2][3]);
 
 
   // Get the force matrices from the springs
-  mat4 quadForceMatrix = springQuadTendon->calculateForceMatrix();
-  mat4 patellarForceMatrix = springPatellarTendon->calculateForceMatrix();
+  //mat4 quadForceMatrix = springQuadTendon->calculateForceMatrix();
+  //mat4 patellarForceMatrix = springPatellarTendon->calculateForceMatrix();
+
+  // Print force matrices
+  /*std::cout << "quadForceMatrix: " << std::endl;
+  std::cout << quadForceMatrix << std::endl;
+  std::cout << "patellarForceMatrix: " << std::endl;
+  std::cout << patellarForceMatrix << std::endl;*/
  
   // Apply the force matrices to the patella object
-  patellaObj->objToWorldTransform = quadForceMatrix * patellaObj->objToWorldTransform;
-  patellaObj->objToWorldTransform = patellarForceMatrix * patellaObj->objToWorldTransform;
+  //patellaObj->objToWorldTransform = quadForceMatrix * patellaObj->objToWorldTransform;
+  //patellaObj->objToWorldTransform = patellarForceMatrix * patellaObj->objToWorldTransform;
 
-  std::cout << "After applying force matrices: " << std::endl;
-  std::cout << "patellaObj->objToWorldTransform: " << patellaObj->objToWorldTransform << std::endl;
+  //std::cout << "After applying force matrices: " << std::endl;
+  //std::cout << "patellaObj->objToWorldTransform: " << patellaObj->objToWorldTransform << std::endl;
+
+  //Calculate and print the distance from the patellaBeforeCoords to the new patella coordinates
+  //vec3 patellaAfterCoords = vec3(patellaObj->objToWorldTransform[0][3], patellaObj->objToWorldTransform[1][3], patellaObj->objToWorldTransform[2][3]);
+  //double distanceMoved = (patellaAfterCoords - patellaBeforeCoords).length();
+  //std::cout << "Distance moved: " << distanceMoved << std::endl;
+
+
+
 
   // Record in animation
 

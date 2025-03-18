@@ -1466,8 +1466,8 @@ int main( int argc, char **argv )
   double patella_X = -124.14, patella_Y = -67.45, patella_Z =  10.4;
   double tibia_X = -230.90, tibia_Y = -6.25, tibia_Z =  -32.25;
 
-  springQuadTendon = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z, 1.0);
-  springPatellarTendon = new Spring(springConstant, dampingCoefficient, tibia_X, tibia_Y, tibia_Z, patella_X, patella_Y, patella_Z, 1.0);
+  springQuadTendon = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z, 0.01);
+  springPatellarTendon = new Spring(springConstant, dampingCoefficient, tibia_X, tibia_Y, tibia_Z, patella_X, patella_Y, patella_Z, 0.01);
 
   axes      = new Axes();
   sphere    = new Sphere();
@@ -1515,6 +1515,9 @@ int main( int argc, char **argv )
 
     // Update the spring
     double distance = 1.0; // Example distance, replace with actual distance calculation
+
+    springElapsedSeconds = springElapsedSeconds * 100.0;
+    // std::cout << "springElapsedSeconds: " << springElapsedSeconds << std::endl;
     springQuadTendon->update(springElapsedSeconds, distance);
     springPatellarTendon->update(springElapsedSeconds, distance);
 
