@@ -1460,7 +1460,7 @@ int main( int argc, char **argv )
   // Set up renderer
 
   // Example parameters for the Spring constructor
-  double springConstant = 0.5;
+  double springConstant = 0.2;
   double dampingCoefficient = 0.95;
   double femur_X = -236.50, femur_Y =  -100.40, femur_Z =  205.92;
   double patella_X = -124.14, patella_Y = -67.45, patella_Z =  10.4;

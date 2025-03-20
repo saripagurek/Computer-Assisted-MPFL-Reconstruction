@@ -25,12 +25,12 @@ void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec
         stepNumber++;
 
         // Print debug information
-        /*if (stepNumber % 50 == 0) {
+        if (stepNumber % 100 == 0) {
             std::cout << "Patella Simulation Step " << stepNumber << std::endl;
             std::cout << "  Current Position: " << currentPosition << std::endl;
-            std::cout << "  Velocity: " << velocity.length() << std::endl;
-            std::cout << "  Acceleration: " << acceleration.length() << std::endl;
-        }*/
+            //std::cout << "  Velocity: " << velocity.length() << std::endl;
+            //std::cout << "  Acceleration: " << acceleration.length() << std::endl;
+        }
        
     //} while ((velocity.length() > minVelocity || acceleration.length() > minAcceleration) && stepNumber < maxSteps);
     } while (velocity.length() > minVelocity || acceleration.length() > minAcceleration);
@@ -177,9 +177,6 @@ vec3 PatellaSimulation::getSkeletalForce(const seq<vec3>& separatorPoints, const
 }
 
 
-
-
-
 // Method to add a spring to the simulation
 void PatellaSimulation::addSpring(Spring* spring) {
     springs.push_back(spring);
@@ -190,9 +187,15 @@ const std::vector<Spring*>& PatellaSimulation::getSprings() const {
     return springs;
 }
 
-// Method to get the new transformation matrix of the patella object
+// Method to get the updated transformation matrix of the patella object
 mat4 PatellaSimulation::getNewPosition() const {
-    // Create a translation matrix based on the current position
-    mat4 translationMatrix = translate(currentPosition.x, currentPosition.y, currentPosition.z);
-    return translationMatrix;
+    // Copy the original transformation matrix
+    mat4 updatedTransform = patellaObj->objToWorldTransform;
+
+    // Update the translation (position) components with the current position
+    updatedTransform[0][3] = currentPosition.x; // Update X position
+    updatedTransform[1][3] = currentPosition.y; // Update Y position
+    updatedTransform[2][3] = currentPosition.z; // Update Z position
+
+    return updatedTransform;
 }

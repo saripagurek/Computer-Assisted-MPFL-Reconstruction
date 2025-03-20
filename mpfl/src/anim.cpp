@@ -333,29 +333,25 @@ void Anim::advance( float distance )
   double patellaMass = 5.0;
   PatellaSimulation patellaSim(patellaObj, patellaMass);
 
-  // Print patella object position before simulation
-  std::cout << "Patella object position before simulation: " << patellaObj->objToWorldTransform << std::endl;
-  std::cout << "currentPosition in SIM " << vec3(patellaObj->objToWorldTransform[0][3], patellaObj->objToWorldTransform[1][3], patellaObj->objToWorldTransform[2][3]) << std::endl;
-
   // Add the tendon springs to the patella simulation
   patellaSim.addSpring(springQuadTendon);
   patellaSim.addSpring(springPatellarTendon);
-
-  // Debug output correction proportion
-  std::cout << "Correction proportion: " << correctionProportion << std::endl;
 
   // Simulate the patella movement
   patellaSim.simulate(separator->skeletonPoints, separator->skeletonNorms, correctionProportion);
 
   //Set the patella object to the new position
 
-  patellaObj->objToWorldTransform = patellaSim.getNewPosition();
-  std::cout << "Correction proportion: " << correctionProportion << std::endl;
-
+  // patellaObj->objToWorldTransform = patellaSim.getNewPosition();
+  std::cout << "Patella object position before simulation: " << patellaObj->objToWorldTransform << std::endl;
 
   // Apply to patella
 
-  patellaObj->objToWorldTransform = T * patellaObj->objToWorldTransform;
+  patellaObj->objToWorldTransform = T * patellaSim.getNewPosition() ;
+
+  // Print patella object position after simulation
+  std::cout << "Patella object position after simulation: " << patellaObj->objToWorldTransform << std::endl;
+
 
 
   // Record in animation
