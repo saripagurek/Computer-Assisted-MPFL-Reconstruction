@@ -12,7 +12,10 @@ public:
     PatellaSimulation(STL* patellaObj, double mass);
 
     // Method to simulate patella movement
-    void simulate(const std::vector<vec3>& separatorPoints);
+    void simulate(const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount);
+
+    // Method to calculate total force from skeletal points
+    vec3 getSkeletalForce(const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount);
 
     // Method to add a spring to the simulation
     void addSpring(Spring* spring);
@@ -21,7 +24,7 @@ public:
     const std::vector<Spring*>& getSprings() const;
 
     // Method to simulate one time step
-    void step(double deltaTime);
+    void step(double deltaTime, const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount);
 
     // Method to get the new position of the patella object
     mat4 getNewPosition() const;

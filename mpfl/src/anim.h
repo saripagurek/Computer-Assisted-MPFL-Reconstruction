@@ -44,7 +44,7 @@ class Anim {
     stateDir = getContainingDir(path);
   }
 
-  void findTransform( mat4 &T, float distance, vec3 overallRotationAxis, vec3 overallRotationCentre );
+  void findTransform( mat4 &T, float distance, vec3 overallRotationAxis, vec3 overallRotationCentre, float correctionProportion );
   void advance( float distance );
   float directionWeight( float lambda1, float lambda2, float dist );
 

@@ -49,7 +49,7 @@ float Anim::directionWeight( float lambda1, float lambda2, float dist )
 
 
 
-void Anim::findTransform( mat4 &T, float distance, vec3 overallRotationAxis, vec3 overallRotationCentre )
+void Anim::findTransform( mat4 &T, float distance, vec3 overallRotationAxis, vec3 overallRotationCentre, float correctionProportion )
 
 {
   vec3 epiAxis = (leftEpicondyle - rightEpicondyle).normalize();
@@ -174,6 +174,8 @@ void Anim::findTransform( mat4 &T, float distance, vec3 overallRotationAxis, vec
       vec3 correctionDir = (separator->skeletonNorms[i] * pointToAxis > 0) ? -1 * separator->skeletonNorms[i] : separator->skeletonNorms[i]; // normal direction to increase distance
 
       vec3 correction =  correctionAmount * correctionDir;
+
+      correctionProportion = correctionAmount;
 
       Q[i] = Q[i] + correction;
 
@@ -322,25 +324,33 @@ void Anim::advance( float distance )
   // Find the transformation to advance by 'distance'
   
   mat4 T;
+  float correctionProportion;
   
-  findTransform( T, distance, (leftEpicondyle - rightEpicondyle).normalize(), 0.5 * (leftEpicondyle + rightEpicondyle) );
+  findTransform( T, distance, (leftEpicondyle - rightEpicondyle).normalize(), 0.5 * (leftEpicondyle + rightEpicondyle), correctionProportion );
 
   // Create a new PatellaSimulation instance
 
   double patellaMass = 5.0;
-  std::vector<vec3> test;
   PatellaSimulation patellaSim(patellaObj, patellaMass);
+
+  // Print patella object position before simulation
+  std::cout << "Patella object position before simulation: " << patellaObj->objToWorldTransform << std::endl;
+  std::cout << "currentPosition in SIM " << vec3(patellaObj->objToWorldTransform[0][3], patellaObj->objToWorldTransform[1][3], patellaObj->objToWorldTransform[2][3]) << std::endl;
 
   // Add the tendon springs to the patella simulation
   patellaSim.addSpring(springQuadTendon);
   patellaSim.addSpring(springPatellarTendon);
 
+  // Debug output correction proportion
+  std::cout << "Correction proportion: " << correctionProportion << std::endl;
+
   // Simulate the patella movement
-  patellaSim.simulate(test);
+  patellaSim.simulate(separator->skeletonPoints, separator->skeletonNorms, correctionProportion);
 
   //Set the patella object to the new position
 
   patellaObj->objToWorldTransform = patellaSim.getNewPosition();
+  std::cout << "Correction proportion: " << correctionProportion << std::endl;
 
 
   // Apply to patella

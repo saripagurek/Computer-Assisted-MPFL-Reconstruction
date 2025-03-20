@@ -125,7 +125,7 @@ void Spring::update(double deltaTime, double updatedLength) {
     totalForce = springForce + dampingForce;
 
     // Print debug information every 5 frames
-    /*if (frameCounter % 10 == 0) {
+    if (frameCounter % 10 == 0) {
         std::cout << "Spring Update:" << std::endl;
         std::cout << "  Current Length: " << currentLength << std::endl;
         std::cout << "  Previous Length: " << previousLength << std::endl;
@@ -135,7 +135,7 @@ void Spring::update(double deltaTime, double updatedLength) {
         std::cout << "  Spring Force: " << springForce << std::endl;
         std::cout << "  Damping Force: " << dampingForce << std::endl;
         std::cout << "  Total Force: " << totalForce << std::endl;
-    }*/
+    }
 
     previousLength = currentLength;
 
