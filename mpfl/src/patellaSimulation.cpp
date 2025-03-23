@@ -1,11 +1,18 @@
 #include "patellaSimulation.h"
+#include "headers.h"
+#include "main.h"
 #include <iostream>
 
 // Constructor for PatellaSimulation
 PatellaSimulation::PatellaSimulation(STL* patellaObj, double mass)
-    : patellaObj(patellaObj), currentPosition(0.0, 0.0, 0.0), 
-    velocity(0.0, 0.0, 0.0), acceleration(0.0, 0.0, 0.0), 
-    totalForce(0.0, 0.0, 0.0), mass(mass) {}
+    : patellaObj(patellaObj), 
+      currentPosition(vec3(patellaObj->objToWorldTransform[0][3], 
+                           patellaObj->objToWorldTransform[1][3], 
+                           patellaObj->objToWorldTransform[2][3])),
+      velocity(0.0, 0.0, 0.0), 
+      acceleration(0.0, 0.0, 0.0), 
+      totalForce(0.0, 0.0, 0.0), 
+      mass(mass) {}
 
 // Method to simulate patella movement
 void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount) {
@@ -16,7 +23,7 @@ void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec
     int maxSteps = 750;
 
     // Initialize the current position based on the patella object
-    currentPosition = vec3(patellaObj->objToWorldTransform[0][3], patellaObj->objToWorldTransform[1][3], patellaObj->objToWorldTransform[2][3]);
+    currentPosition = vec3(anim->patellaObj->objToWorldTransform[0][3], anim->patellaObj->objToWorldTransform[1][3], anim->patellaObj->objToWorldTransform[2][3]);
     vec3 patellaBeforeCoords = currentPosition;
 
     do {
@@ -25,12 +32,12 @@ void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec
         stepNumber++;
 
         // Print debug information
-        if (stepNumber % 100 == 0) {
+        /*if (stepNumber % 100 == 0) {
             std::cout << "Patella Simulation Step " << stepNumber << std::endl;
             std::cout << "  Current Position: " << currentPosition << std::endl;
-            //std::cout << "  Velocity: " << velocity.length() << std::endl;
-            //std::cout << "  Acceleration: " << acceleration.length() << std::endl;
-        }
+            std::cout << "  Velocity: " << velocity.length() << std::endl;
+            std::cout << "  Acceleration: " << acceleration.length() << std::endl;
+        }*/
        
     //} while ((velocity.length() > minVelocity || acceleration.length() > minAcceleration) && stepNumber < maxSteps);
     } while (velocity.length() > minVelocity || acceleration.length() > minAcceleration);
@@ -73,7 +80,7 @@ void PatellaSimulation::step(double timeStep, const seq<vec3>& separatorPoints, 
     totalForce.z += skeletalForce.z;
 
     // Print skeletal force for debugging
-    //std::cout << "Skeletal Force: " << skeletalForce << std::endl;
+    std::cout << "Skeletal Force: " << skeletalForce << std::endl;
 
     // Recalculate the acceleration based on the total force and mass
     acceleration.x = totalForce.x / mass;

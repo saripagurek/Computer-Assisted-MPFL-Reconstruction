@@ -301,7 +301,8 @@ void Anim::advance( float distance )
   else if (distance < 0)
     currentStep = 0;
   
-  patellaObj->objToWorldTransform = transforms[currentStep];
+
+  //patellaObj->objToWorldTransform = transforms[currentStep];
 
   // If reversing (with currentStep == 0), shift all separator files
   // forward one to make room for a new file at position 0.
@@ -343,15 +344,11 @@ void Anim::advance( float distance )
   //Set the patella object to the new position
 
   // patellaObj->objToWorldTransform = patellaSim.getNewPosition();
-  std::cout << "Patella object position before simulation: " << patellaObj->objToWorldTransform << std::endl;
 
   // Apply to patella
+  //patellaObj->objToWorldTransform = T * patellaObj->objToWorldTransform ;
 
   patellaObj->objToWorldTransform = T * patellaSim.getNewPosition() ;
-
-  // Print patella object position after simulation
-  std::cout << "Patella object position after simulation: " << patellaObj->objToWorldTransform << std::endl;
-
 
 
   // Record in animation
