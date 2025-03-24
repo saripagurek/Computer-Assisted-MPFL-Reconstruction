@@ -41,5 +41,5 @@ Note key short cuts for model use:
 - Q and W followed by CTRL-Click to select femoral tendon end points (W endpoint will lock into patella local coordinate system)
 - J and U followed by CTRL-Click to select patellar tendon end points (U endpoint will lock into patella local coordinate system)
 - Left and Right arrow keys to zoom in and out
-- Up and Down arrow keys to rotate the patella around the it's current calculated track
-- A to recalculate current position
+- Up and Down arrow keys to rotate the patella around it's current calculated track
+- A to recalculate current patella position
