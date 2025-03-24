@@ -12,7 +12,7 @@ public:
     PatellaSimulation(STL* patellaObj, double mass);
 
     // Method to simulate patella movement
-    void simulate(const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount);
+    void simulate(const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount, const vec3& rotationAxis);
 
     // Method to calculate total force from skeletal points
     vec3 getSkeletalForce(const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount);
@@ -37,6 +37,9 @@ private:
     vec3 totalForce; // Total force acting on the patella
     double mass; // Mass of the patella
     std::vector<Spring*> springs; // List of springs associated with the simulation
+    vec3 rotationAxis;
+    float rotationAngle;
+
 };
 
 #endif // PATELLASIMULATION_H

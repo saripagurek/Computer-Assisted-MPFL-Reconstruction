@@ -1460,14 +1460,14 @@ int main( int argc, char **argv )
   // Set up renderer
 
   // Example parameters for the Spring constructor
-  double springConstant = 0.01;
+  double springConstant = 0.02;
   double dampingCoefficient = 5.0;
   double femur_X = -236.50, femur_Y =  -100.40, femur_Z =  205.92;
   double patella_X = -124.14, patella_Y = -67.45, patella_Z =  10.4;
   double tibia_X = -230.90, tibia_Y = -6.25, tibia_Z =  -32.25;
 
-  springQuadTendon = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z, 0.05);
-  springPatellarTendon = new Spring(springConstant, dampingCoefficient, tibia_X, tibia_Y, tibia_Z, patella_X, patella_Y, patella_Z, 0.05);
+  springQuadTendon = new Spring(springConstant, dampingCoefficient, femur_X, femur_Y, femur_Z, patella_X, patella_Y, patella_Z, 0.1);
+  springPatellarTendon = new Spring(springConstant, dampingCoefficient, tibia_X, tibia_Y, tibia_Z, patella_X, patella_Y, patella_Z, 0.1);
 
   axes      = new Axes();
   sphere    = new Sphere();

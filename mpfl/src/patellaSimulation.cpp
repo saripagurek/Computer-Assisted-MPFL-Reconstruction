@@ -15,7 +15,7 @@ PatellaSimulation::PatellaSimulation(STL* patellaObj, double mass)
       mass(mass) {}
 
 // Method to simulate patella movement
-void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount) {
+void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount, const vec3& rotationAxis) {
     double minVelocity = 0.01;
     double minAcceleration = 0.01;
     double timeStep = 0.1;
@@ -25,6 +25,9 @@ void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec
     // Initialize the current position based on the patella object
     currentPosition = vec3(anim->patellaObj->objToWorldTransform[0][3], anim->patellaObj->objToWorldTransform[1][3], anim->patellaObj->objToWorldTransform[2][3]);
     vec3 patellaBeforeCoords = currentPosition;
+
+    //Assign rotation axis
+    this->rotationAxis = rotationAxis;
 
     do {
         // Perform one simulation step
@@ -107,6 +110,37 @@ void PatellaSimulation::step(double timeStep, const seq<vec3>& separatorPoints, 
     currentPosition.x += velocity.x * timeStep;
     currentPosition.y += velocity.y * timeStep;
     currentPosition.z += velocity.z * timeStep;
+
+
+    //----- Torque Calculation -----//
+
+    // Calculate the displacement vector from origin to force application point
+    vec3 r = currentPosition - vec3(
+        patellaObj->objToWorldTransform[0][3],
+        patellaObj->objToWorldTransform[1][3],
+        patellaObj->objToWorldTransform[2][3]);
+
+    // Calculate the torque using the cross product
+    vec3 torque = r ^ totalForce;
+
+    // Calculate the rotation angle based on the torque magnitude
+    rotationAngle = torque.length() * 0.01; // Adjust scaling factor as needed
+
+    // Set the rotation axis to be the normalized torque direction
+if (rotationAngle > 0.0f) {
+    vec3 normalizedTorque = torque.normalize();
+    rotationAxis.x = normalizedTorque.x;
+    rotationAxis.y = normalizedTorque.y;
+    rotationAxis.z = normalizedTorque.z;
+} else {
+    rotationAxis.x = 0.0f;
+    rotationAxis.y = 1.0f;
+    rotationAxis.z = 0.0f; // Default axis if no torque
+}
+
+    // Print torque and rotation information for debugging
+    std::cout << "Torque: " << torque << std::endl;
+    std::cout << "Rotation Angle: " << rotationAngle << std::endl;
 
 }
 
@@ -203,6 +237,12 @@ mat4 PatellaSimulation::getNewPosition() const {
     updatedTransform[0][3] = currentPosition.x; // Update X position
     updatedTransform[1][3] = currentPosition.y; // Update Y position
     updatedTransform[2][3] = currentPosition.z; // Update Z position
+
+    // Generate the rotation matrix based on the calculated angle and axis
+    mat4 rotationMatrix = rotate(rotationAngle, rotationAxis);
+
+    // Combine translation and rotation
+    updatedTransform = rotationMatrix * translate(currentPosition);
 
     return updatedTransform;
 }

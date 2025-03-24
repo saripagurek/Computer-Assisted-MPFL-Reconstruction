@@ -338,8 +338,10 @@ void Anim::advance( float distance )
   patellaSim.addSpring(springQuadTendon);
   patellaSim.addSpring(springPatellarTendon);
 
+  vec3 overallRotationAxis = (leftEpicondyle - rightEpicondyle).normalize();
+
   // Simulate the patella movement
-  patellaSim.simulate(separator->skeletonPoints, separator->skeletonNorms, correctionProportion);
+  patellaSim.simulate(separator->skeletonPoints, separator->skeletonNorms, correctionProportion, overallRotationAxis);
 
   //Set the patella object to the new position
 
