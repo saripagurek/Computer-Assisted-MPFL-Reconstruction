@@ -4,7 +4,7 @@ Supervised by Professor James Stewart for CISC 499 @ Queen's University
 
 ## Introduction
 - Medial Patellofemoral Ligament (MPFL) tears are a common injury among young athletes, often resulting from forceful patella dislocation. The MPFL secures the patella to the femur and, when torn, surgical reconstruction is performed to replace the ligament. The current surgical technique relies on locating Schottle’s point as an ideal attachment site, guided largely by the surgeon’s expertise.
-- This project builds on an existing knee joint model of motion by integrating forces from the quadriceps muscle and patellar tendon, which are critical to knee motion and patellar tracking. By incorporating these forces, the enhanced model aims to assist in optimizing tendon length and selecting insertion points to reduce complications like graft impingement and maintaining graft isometry.\
+- This project builds on an existing knee joint model of motion by integrating forces from the quadriceps muscle and patellar tendon, which are critical to knee motion and patellar tracking. By incorporating these forces, the enhanced model aims to assist in optimizing tendon length and selecting insertion points to reduce complications like graft impingement and maintaining graft isometry.
 
 <img src="knee_diagram.png" width="500">
 
@@ -30,3 +30,16 @@ Positioning of the patella before and after effect of muscular and skeletal forc
 Before and after from top down view.\
 <img src="before_2.png" width="400">
 <img src="after_2.png" width="400">
+
+## Run on mac
+- $ cd mpfl/macos
+- $ make clean
+- $ make
+- $ ./mpfl *path-to-data_good*/096/state.txt
+
+Note key short cuts for model use:
+- Q and W followed by CTRL-Click to select femoral tendon end points (W endpoint will lock into patella local coordinate system)
+- J and U followed by CTRL-Click to select patellar tendon end points (U endpoint will lock into patella local coordinate system)
+- Left and Right arrow keys to zoom in and out
+- Up and Down arrow keys to rotate the patella around the it's current calculated track
+- A to recalculate current position
