@@ -20,7 +20,6 @@ void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec
     double minAcceleration = 0.01;
     double timeStep = 0.1;
     int stepNumber = 0;
-    int maxSteps = 750;
 
     // Initialize the current position based on the patella object
     currentPosition = vec3(anim->patellaObj->objToWorldTransform[0][3], anim->patellaObj->objToWorldTransform[1][3], anim->patellaObj->objToWorldTransform[2][3]);
@@ -42,12 +41,7 @@ void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec
             std::cout << "  Acceleration: " << acceleration.length() << std::endl;
         }*/
        
-    //} while ((velocity.length() > minVelocity || acceleration.length() > minAcceleration) && stepNumber < maxSteps);
     } while (velocity.length() > minVelocity || acceleration.length() > minAcceleration);
-
-    /*if (stepNumber >= maxSteps) {
-        std::cout << "Simulation stopped after reaching the maximum number of steps" << std::endl;
-    }*/
 
     // Calculate and print the distance from the patellaBeforeCoords to the new patella coordinates
     vec3 patellaAfterCoords = currentPosition;
@@ -73,8 +67,6 @@ void PatellaSimulation::step(double timeStep, const seq<vec3>& separatorPoints, 
         totalForce.y = totalForce.y + spring->totalForce.y;
         totalForce.z = totalForce.z + spring->totalForce.z;
     }
-
-    //std::cout << "Total Force: " << totalForce << std::endl;
 
     // Get the skeletal force and add it to the total force
    vec3 skeletalForce = getSkeletalForce(separatorPoints, separatorNormals, correctionAmount);
@@ -234,9 +226,9 @@ mat4 PatellaSimulation::getNewPosition() const {
     mat4 updatedTransform = patellaObj->objToWorldTransform;
 
     // Update the translation (position) components with the current position
-    updatedTransform[0][3] = currentPosition.x; // Update X position
-    updatedTransform[1][3] = currentPosition.y; // Update Y position
-    updatedTransform[2][3] = currentPosition.z; // Update Z position
+    updatedTransform[0][3] = currentPosition.x;
+    updatedTransform[1][3] = currentPosition.y;
+    updatedTransform[2][3] = currentPosition.z;
 
     // Generate the rotation matrix based on the calculated angle and axis
     mat4 rotationMatrix = rotate(rotationAngle, rotationAxis);

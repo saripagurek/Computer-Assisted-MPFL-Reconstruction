@@ -128,18 +128,18 @@ void Spring::update(double deltaTime, double updatedLength) {
     totalForce.y *= weight;
     totalForce.z *= weight;
 
-    // Print debug information every 5 frames
-    //if (frameCounter % 10 == 0) {
-    std::cout << "Spring Update:" << std::endl;
-    std::cout << "  Current Length: " << currentLength << std::endl;
-    std::cout << "  Previous Length: " << previousLength << std::endl;
-    std::cout << "  Rest Length: " << restLength << std::endl;
-    std::cout << "  Displacement: " << displacement << std::endl;
-    std::cout << "  Spring Velocity: " << springVelocity << std::endl;
-    std::cout << "  Spring Force: " << springForce << std::endl;
-    std::cout << "  Damping Force: " << dampingForce << std::endl;
-    std::cout << "  Total Force: " << totalForce << std::endl;
-    //}
+    // Print debug information
+    /*if (frameCounter % 10 == 0) {
+        std::cout << "Spring Update:" << std::endl;
+        std::cout << "  Current Length: " << currentLength << std::endl;
+        std::cout << "  Previous Length: " << previousLength << std::endl;
+        std::cout << "  Rest Length: " << restLength << std::endl;
+        std::cout << "  Displacement: " << displacement << std::endl;
+        std::cout << "  Spring Velocity: " << springVelocity << std::endl;
+        std::cout << "  Spring Force: " << springForce << std::endl;
+        std::cout << "  Damping Force: " << dampingForce << std::endl;
+        std::cout << "  Total Force: " << totalForce << std::endl;
+    }*/
 
     previousLength = currentLength;
 
