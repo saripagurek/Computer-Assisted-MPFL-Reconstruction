@@ -43,12 +43,6 @@ void PatellaSimulation::simulate(const seq<vec3>& separatorPoints, const seq<vec
        
     } while (velocity.length() > minVelocity || acceleration.length() > minAcceleration);
 
-    // Calculate and print the distance from the patellaBeforeCoords to the new patella coordinates
-    vec3 patellaAfterCoords = currentPosition;
-    double distanceMoved = (patellaAfterCoords - patellaBeforeCoords).length();
-    std::cout << "Distance moved: " << distanceMoved << std::endl;
-    std::cout << "Before: " << patellaBeforeCoords << std::endl;
-    std::cout << "After: " << patellaAfterCoords << std::endl;
 }
 
 // Method to simulate one time step
@@ -56,26 +50,36 @@ void PatellaSimulation::step(double timeStep, const seq<vec3>& separatorPoints, 
 
     // Clear the total force
     totalForce = vec3(0.0, 0.0, 0.0);
+    vec3 totalTorque(0.0, 0.0, 0.0);
+    double forceScaling = 0.1; 
 
     // Recalculate the forces from all the springs in the list
     for (Spring* spring : springs) {
+        vec3 patellaSurface(spring->patella_X, spring->patella_Y, spring->patella_Z);
+        vec3 tendonPoint(spring->tendon_X, spring->tendon_Y, spring->tendon_Z);
         vec3 springVector = currentPosition - vec3(spring->tendon_X, spring->tendon_Y, spring->tendon_Z);
         double updatedLength = springVector.length();
         spring->update(timeStep, updatedLength);
 
-        totalForce.x = totalForce.x + spring->totalForce.x;
-        totalForce.y = totalForce.y + spring->totalForce.y;
-        totalForce.z = totalForce.z + spring->totalForce.z;
+        totalForce.x = totalForce.x + spring->totalForce.x * forceScaling;
+        totalForce.y = totalForce.y + spring->totalForce.y * forceScaling;
+        totalForce.z = totalForce.z + spring->totalForce.z * forceScaling;
+
+        // Compute r as vector from patella surface attachment point to tendon attachment point
+        vec3 r = tendonPoint - patellaSurface;
+
+        // Accumulate torque: r cross F
+        vec3 springTorque = r ^ spring->totalForce;
+        totalTorque.x += springTorque.x;
+        totalTorque.y += springTorque.y;
+        totalTorque.z += springTorque.z;
     }
 
     // Get the skeletal force and add it to the total force
-   vec3 skeletalForce = getSkeletalForce(separatorPoints, separatorNormals, correctionAmount);
+    vec3 skeletalForce = getSkeletalForce(separatorPoints, separatorNormals, correctionAmount);
     totalForce.x += skeletalForce.x;
     totalForce.y += skeletalForce.y;
     totalForce.z += skeletalForce.z;
-
-    // Print skeletal force for debugging
-    std::cout << "Skeletal Force: " << skeletalForce << std::endl;
 
     // Recalculate the acceleration based on the total force and mass
     acceleration.x = totalForce.x / mass;
@@ -93,7 +97,7 @@ void PatellaSimulation::step(double timeStep, const seq<vec3>& separatorPoints, 
     velocity.y += acceleration.y * timeStep;
     velocity.z += acceleration.z * timeStep;
 
-    const double velocityDamping = 0.5;
+    const double velocityDamping = 0.95;
     velocity.x *= velocityDamping;
     velocity.y *= velocityDamping;
     velocity.z *= velocityDamping;
@@ -103,24 +107,13 @@ void PatellaSimulation::step(double timeStep, const seq<vec3>& separatorPoints, 
     currentPosition.y += velocity.y * timeStep;
     currentPosition.z += velocity.z * timeStep;
 
-
-    //----- Torque Calculation -----//
-
-    // Calculate the displacement vector from origin to force application point
-    vec3 r = currentPosition - vec3(
-        patellaObj->objToWorldTransform[0][3],
-        patellaObj->objToWorldTransform[1][3],
-        patellaObj->objToWorldTransform[2][3]);
-
-    // Calculate the torque using the cross product
-    vec3 torque = r ^ totalForce;
-
     // Calculate the rotation angle based on the torque magnitude
-    rotationAngle = torque.length() * 0.01; // Adjust scaling factor as needed
+    double rotationScale = 0.00001; // Adjust scaling factor as needed
+    rotationAngle = totalTorque.length() * rotationScale;
 
     // Set the rotation axis to be the normalized torque direction
 if (rotationAngle > 0.0f) {
-    vec3 normalizedTorque = torque.normalize();
+    vec3 normalizedTorque = totalTorque.normalize();
     rotationAxis.x = normalizedTorque.x;
     rotationAxis.y = normalizedTorque.y;
     rotationAxis.z = normalizedTorque.z;
@@ -130,16 +123,17 @@ if (rotationAngle > 0.0f) {
     rotationAxis.z = 0.0f; // Default axis if no torque
 }
 
-    // Print torque and rotation information for debugging
-    std::cout << "Torque: " << torque << std::endl;
+    /*std::cout << "Skeletal Force: " << skeletalForce << std::endl;
+    std::cout << "Torque: " << totalTorque << std::endl;
     std::cout << "Rotation Angle: " << rotationAngle << std::endl;
+    std::cout << "Force: " << totalForce << std::endl;*/
 
 }
 
 // Method to calculate total force from skeletal points on the cartilage towards the patella
 vec3 PatellaSimulation::getSkeletalForce(const seq<vec3>& separatorPoints, const seq<vec3>& separatorNormals, const float& correctionAmount) {
     vec3 totalForce(0.0, 0.0, 0.0);
-    double weight = 0.0000001;  // Weight factor to control force intensity
+    double weight = 0.00000001;  // Weight factor to control force intensity
     double minDistance = 0.001;  // Minimum effective distance to avoid excessive force
     double maxDistance = 150.0;
     double bufferDistance = 50.0;  // Buffer distance to account for patella size and mass
@@ -191,14 +185,6 @@ vec3 PatellaSimulation::getSkeletalForce(const seq<vec3>& separatorPoints, const
             double forceY = normal.y * forceMagnitude * correctionScaledY;
             double forceZ = normal.z * forceMagnitude * correctionScaledZ;
 
-            /*if (i % 100 == 0) {
-                std::cout << "Point index " << i << ": Point = " << point << ", Normal = " << normal << std::endl;
-                std::cout << "Distance = " << distance << std::endl;
-                std::cout << "Force components: X = " << forceX << ", Y = " << forceY << ", Z = " << forceZ << std::endl;
-                std::cout << "Force Magnitude: " << forceMagnitude << std::endl;
-                std::cout << "CorrectionScaled: X = " << correctionScaledX << ", Y = " << correctionScaledY << ", Z = " << correctionScaledZ << std::endl;
-            }*/
-
             // Add the force components to the total force
             totalForce.x += forceX;
             totalForce.y += forceY;
@@ -234,7 +220,20 @@ mat4 PatellaSimulation::getNewPosition() const {
     mat4 rotationMatrix = rotate(rotationAngle, rotationAxis);
 
     // Combine translation and rotation
-    updatedTransform = rotationMatrix * translate(currentPosition);
+    updatedTransform = rotationMatrix * updatedTransform;
+
+    //Print before and after coordinates for debugging
+    vec3 patellaBeforeCoords = vec3(patellaObj->objToWorldTransform[0][3], patellaObj->objToWorldTransform[1][3], patellaObj->objToWorldTransform[2][3]);
+    vec3 patellaAfterCoords = vec3(updatedTransform[0][3], updatedTransform[1][3], updatedTransform[2][3]);
+    std::cout << "Patella Before: " << patellaBeforeCoords << std::endl;
+    std::cout << "Patella After: " << patellaAfterCoords << std::endl;
+    std::cout << "Rotation Angle: " << rotationAngle << std::endl;
+    std::cout << "Rotation Axis: " << rotationAxis << std::endl;
+    
+    double distanceMoved = sqrt(pow(patellaAfterCoords.x - patellaBeforeCoords.x, 2) +
+                                 pow(patellaAfterCoords.y - patellaBeforeCoords.y, 2) +
+                                 pow(patellaAfterCoords.z - patellaBeforeCoords.z, 2));
+    std::cout << "Distance Moved: " << distanceMoved << std::endl;
 
     return updatedTransform;
 }

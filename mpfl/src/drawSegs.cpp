@@ -134,7 +134,6 @@ const char *Segs::fragmentShader = R"(
   smooth in mediump vec3 normal;
 
   out mediump vec4 fragColour;
-  out mediump vec4 test;
   
   void main()
   
@@ -149,9 +148,7 @@ const char *Segs::fragmentShader = R"(
         ndotl = 0.1;
     }
 
-    test = vec4( ndotl * colour.rgb, colour.a );
+    fragColour = vec4( ndotl * colour.rgb, colour.a );
 
-    fragColour = vec4(1.0, 0.0, 0.0, 1.0);
-    return;
   }
 )";

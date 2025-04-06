@@ -331,7 +331,7 @@ void Anim::advance( float distance )
 
   // Create a new PatellaSimulation instance
 
-  double patellaMass = 5.0;
+  double patellaMass = 7.0;
   PatellaSimulation patellaSim(patellaObj, patellaMass);
 
   // Add the tendon springs to the patella simulation
@@ -346,7 +346,6 @@ void Anim::advance( float distance )
   // Apply to patella
 
   patellaObj->objToWorldTransform = T * patellaSim.getNewPosition() ;
-
 
   // Record in animation
 
