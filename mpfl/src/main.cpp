@@ -863,7 +863,14 @@ void keyCallback( GLFWwindow* window, int key, int scancode, int action, int mod
 	   << "a    show/hide axes" << endl
 	   << "d    show/hide distance heatmap" << endl
 	   << "e    output eye parameters" << endl
-	   << "+/-  inc/dec max distance rendering range" << endl;
+	   << "+/-  inc/dec max distance rendering range" << endl
+
+     << "Q    capture femoral tendon anchor point 1" << endl
+     << "W    capture femoral tendon anchor point 2" << endl
+     << "U    capture patellar tendon anchor point 1" << endl
+     << "J    capture patellar tendon anchor point 1" << endl
+     << "LEFT zoom in" << endl
+     << "RIGHT zoom out" << endl;
     }
 
     // Check for digits 0, 1, 2, ...
